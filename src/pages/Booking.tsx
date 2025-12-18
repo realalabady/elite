@@ -15,10 +15,13 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FadeIn } from "@/components/animations/FadeIn";
 import { useLanguage } from "@/hooks/useLanguage";
-import { clinics } from "@/data/clinics";
-import { doctors } from "@/data/doctors";
+import { useToast } from "@/hooks/use-toast";
+import { bookingApi, Clinic, Doctor, Service, TimeSlot } from "@/services/api";
+import { BookingStep } from "@/types/booking";
 import { cn } from "@/lib/utils";
 
 const timeSlots = [
@@ -50,12 +53,15 @@ const timeSlots = [
 const Booking = () => {
   const { t } = useTranslation();
   const { currentLanguage, isRTL } = useLanguage();
+  const { toast } = useToast();
   const lang = currentLanguage as "en" | "ar";
   const [searchParams] = useSearchParams();
 
-  const [step, setStep] = useState(1);
+  // State management
+  const [step, setStep] = useState<number>(1);
   const [selectedClinic, setSelectedClinic] = useState<string>("");
   const [selectedDoctor, setSelectedDoctor] = useState<string>("");
+  const [selectedService, setSelectedService] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [formData, setFormData] = useState({
@@ -66,37 +72,108 @@ const Booking = () => {
     notes: "",
   });
 
+  // Data state
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+
+  // Loading and error states
+  const [loading, setLoading] = useState({
+    clinics: false,
+    doctors: false,
+    services: false,
+    slots: false,
+    booking: false,
+  });
+  const [errors, setErrors] = useState({
+    clinics: null,
+    doctors: null,
+    services: null,
+    slots: null,
+    booking: null,
+  });
+
+  // Load initial data
+  useEffect(() => {
+    loadClinics();
+  }, []);
+
+  // Handle URL parameters
   useEffect(() => {
     const clinicParam = searchParams.get("clinic");
     const doctorParam = searchParams.get("doctor");
+    const serviceParam = searchParams.get("service");
     if (clinicParam) {
       setSelectedClinic(clinicParam);
       setStep(2);
+      loadDoctors(clinicParam);
     }
     if (doctorParam) {
       const doc = doctors.find((d) => d.id === doctorParam);
       if (doc) {
         setSelectedClinic(doc.clinicId);
         setSelectedDoctor(doctorParam);
-        setStep(3);
+        setStep(serviceParam ? 2.5 : 3);
+        loadServices(doctorParam);
       }
     }
-  }, [searchParams]);
+    if (serviceParam) {
+      setSelectedService(serviceParam);
+      setStep(3);
+    }
+  }, [searchParams, doctors]);
+
+  // Load doctors when clinic changes
+  useEffect(() => {
+    if (selectedClinic && step >= 2) {
+      loadDoctors(selectedClinic);
+    }
+  }, [selectedClinic]);
+
+  // Load services when doctor changes
+  useEffect(() => {
+    if (selectedDoctor && step >= 2) {
+      loadServices(selectedDoctor);
+    }
+  }, [selectedDoctor]);
+
+  // Load available slots when date changes
+  useEffect(() => {
+    if (selectedDoctor && selectedDate && selectedService) {
+      loadAvailableSlots(selectedDoctor, selectedDate, selectedService);
+    }
+  }, [selectedDoctor, selectedDate, selectedService]);
 
   const filteredDoctors = selectedClinic
     ? doctors.filter((d) => d.clinicId === selectedClinic)
     : doctors;
 
-  const steps = [
+  const steps: BookingStep[] = [
     { num: 1, label: t("booking.step1"), icon: Building2 },
     { num: 2, label: t("booking.step2"), icon: User },
+    { num: 2.5, label: t("booking.selectService"), icon: User },
     { num: 3, label: t("booking.step3"), icon: Calendar },
     { num: 4, label: t("booking.step4"), icon: Clock },
     { num: 5, label: t("booking.step5"), icon: Check },
   ];
 
-  const nextStep = () => setStep((s) => Math.min(s + 1, 5));
-  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
+  const nextStep = () => {
+    if (step === 2) {
+      setStep(2.5);
+    } else if (step === 4) {
+      handleBooking();
+    } else {
+      setStep((s) => Math.min(s + 1, 5));
+    }
+  };
+  const prevStep = () => {
+    if (step === 2.5) {
+      setStep(2);
+    } else {
+      setStep((s) => Math.max(s - 1, 1));
+    }
+  };
 
   const canProceed = () => {
     switch (step) {
@@ -104,6 +181,8 @@ const Booking = () => {
         return !!selectedClinic;
       case 2:
         return !!selectedDoctor;
+      case 2.5:
+        return !!selectedService;
       case 3:
         return !!selectedDate && !!selectedTime;
       case 4:
@@ -139,6 +218,116 @@ const Booking = () => {
 
   const selectedClinicData = clinics.find((c) => c.id === selectedClinic);
   const selectedDoctorData = doctors.find((d) => d.id === selectedDoctor);
+
+  // API functions
+  const loadClinics = async () => {
+    setLoading((prev) => ({ ...prev, clinics: true }));
+    setErrors((prev) => ({ ...prev, clinics: null }));
+    try {
+      const data = await bookingApi.getClinics();
+      setClinics(data);
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, clinics: error.message }));
+      toast({
+        title: "Error",
+        description: "Failed to load clinics",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, clinics: false }));
+    }
+  };
+
+  const loadDoctors = async (clinicId: string) => {
+    setLoading((prev) => ({ ...prev, doctors: true }));
+    setErrors((prev) => ({ ...prev, doctors: null }));
+    try {
+      const data = await bookingApi.getDoctors(clinicId);
+      setDoctors(data);
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, doctors: error.message }));
+      toast({
+        title: "Error",
+        description: "Failed to load doctors",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, doctors: false }));
+    }
+  };
+
+  const loadServices = async (doctorId: string) => {
+    setLoading((prev) => ({ ...prev, services: true }));
+    setErrors((prev) => ({ ...prev, services: null }));
+    try {
+      const data = await bookingApi.getServices(doctorId);
+      setServices(data);
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, services: error.message }));
+      toast({
+        title: "Error",
+        description: "Failed to load services",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, services: false }));
+    }
+  };
+
+  const loadAvailableSlots = async (
+    doctorId: string,
+    date: string,
+    serviceId: string
+  ) => {
+    setLoading((prev) => ({ ...prev, slots: true }));
+    setErrors((prev) => ({ ...prev, slots: null }));
+    try {
+      const data = await bookingApi.getAvailableSlots(
+        doctorId,
+        date,
+        serviceId
+      );
+      setAvailableSlots(data);
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, slots: error.message }));
+      toast({
+        title: "Error",
+        description: "Failed to load available slots",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, slots: false }));
+    }
+  };
+
+  const handleBooking = async () => {
+    setLoading((prev) => ({ ...prev, booking: true }));
+    setErrors((prev) => ({ ...prev, booking: null }));
+    try {
+      await bookingApi.createAppointment({
+        clinicId: selectedClinic,
+        doctorId: selectedDoctor,
+        serviceId: selectedService,
+        date: selectedDate,
+        time: selectedTime,
+        patientInfo: formData,
+      });
+      setStep(5);
+      toast({
+        title: "Success",
+        description: "Appointment booked successfully",
+      });
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, booking: error.message }));
+      toast({
+        title: "Error",
+        description: "Failed to book appointment",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, booking: false }));
+    }
+  };
 
   return (
     <Layout>
@@ -221,26 +410,54 @@ const Booking = () => {
                 <h2 className="font-display text-2xl font-bold mb-6">
                   {t("booking.selectClinic")}
                 </h2>
+                {errors.clinics && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertDescription>{errors.clinics}</AlertDescription>
+                  </Alert>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {clinics.map((clinic) => (
-                    <button
-                      key={clinic.id}
-                      onClick={() => setSelectedClinic(clinic.id)}
-                      className={cn(
-                        "p-4 rounded-xl border-2 text-left transition-all",
-                        selectedClinic === clinic.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <h3 className="font-semibold text-foreground mb-1">
-                        {clinic.name[lang]}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {clinic.description[lang]}
+                  {loading.clinics ? (
+                    // Loading skeletons
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="p-4 rounded-xl border-2 border-border"
+                      >
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                    ))
+                  ) : clinics.length === 0 ? (
+                    // Empty state
+                    <div className="col-span-full text-center py-12">
+                      <p className="text-muted-foreground">
+                        {lang === "ar"
+                          ? "لا توجد عيادات متاحة حالياً"
+                          : "No clinics available at the moment"}
                       </p>
-                    </button>
-                  ))}
+                    </div>
+                  ) : (
+                    clinics.map((clinic) => (
+                      <button
+                        key={clinic.id}
+                        onClick={() => setSelectedClinic(clinic.id)}
+                        className={cn(
+                          "p-4 rounded-xl border-2 text-left transition-all",
+                          selectedClinic === clinic.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <h3 className="font-semibold text-foreground mb-1">
+                          {clinic.name[lang]}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {clinic.description[lang]}
+                        </p>
+                      </button>
+                    ))
+                  )}
                 </div>
               </motion.div>
             )}
@@ -256,35 +473,104 @@ const Booking = () => {
                 <h2 className="font-display text-2xl font-bold mb-6">
                   {t("booking.selectDoctor")}
                 </h2>
+                {errors.doctors && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertDescription>{errors.doctors}</AlertDescription>
+                  </Alert>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredDoctors.map((doctor) => (
+                  {loading.doctors ? (
+                    // Loading skeletons
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="p-4 rounded-xl border-2 border-border flex items-center gap-4"
+                      >
+                        <Skeleton className="w-16 h-16 rounded-full shrink-0" />
+                        <div className="flex-1">
+                          <Skeleton className="h-6 w-3/4 mb-2" />
+                          <Skeleton className="h-4 w-1/2 mb-1" />
+                          <Skeleton className="h-3 w-1/3" />
+                        </div>
+                      </div>
+                    ))
+                  ) : filteredDoctors.length === 0 ? (
+                    // Empty state
+                    <div className="col-span-full text-center py-12">
+                      <p className="text-muted-foreground">
+                        {lang === "ar"
+                          ? "لا يوجد أطباء متاحون في هذه العيادة"
+                          : "No doctors available in this clinic"}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredDoctors.map((doctor) => (
+                      <button
+                        key={doctor.id}
+                        onClick={() => setSelectedDoctor(doctor.id)}
+                        className={cn(
+                          "p-4 rounded-xl border-2 text-left transition-all flex items-center gap-4",
+                          selectedDoctor === doctor.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <span className="text-2xl font-display font-bold text-primary">
+                            {doctor.name[lang].charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">
+                            {doctor.name[lang]}
+                          </h3>
+                          <p className="text-sm text-primary">
+                            {doctor.specialty[lang]}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {doctor.experience}{" "}
+                            {lang === "ar" ? "سنوات خبرة" : "years experience"}
+                          </p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 2.5: Select Service */}
+            {step === 2.5 && (
+              <motion.div
+                key="step2.5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <h2 className="font-display text-2xl font-bold mb-6">
+                  {t("booking.selectService")}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {services.map((service) => (
                     <button
-                      key={doctor.id}
-                      onClick={() => setSelectedDoctor(doctor.id)}
+                      key={service.id}
+                      onClick={() => setSelectedService(service.id)}
                       className={cn(
-                        "p-4 rounded-xl border-2 text-left transition-all flex items-center gap-4",
-                        selectedDoctor === doctor.id
+                        "p-4 rounded-xl border-2 text-left transition-all",
+                        selectedService === service.id
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/50"
                       )}
                     >
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="text-2xl font-display font-bold text-primary">
-                          {doctor.name[lang].charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">
-                          {doctor.name[lang]}
-                        </h3>
-                        <p className="text-sm text-primary">
-                          {doctor.specialty[lang]}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {doctor.experience}{" "}
-                          {lang === "ar" ? "سنوات خبرة" : "years experience"}
-                        </p>
-                      </div>
+                      <h3 className="font-semibold text-foreground mb-1">
+                        {service.name[lang]}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {service.description[lang]}
+                      </p>
+                      <p className="text-sm font-medium text-primary mt-2">
+                        {service.price} {lang === "ar" ? "ريال" : "SAR"}
+                      </p>
                     </button>
                   ))}
                 </div>
@@ -464,6 +750,18 @@ const Booking = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
+                        {t("booking.selectService")}:
+                      </span>
+                      <span className="font-medium">
+                        {
+                          services.find((s) => s.id === selectedService)?.name[
+                            lang
+                          ]
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
                         {t("booking.selectDate")}:
                       </span>
                       <span className="font-medium">{selectedDate}</span>
@@ -492,6 +790,7 @@ const Booking = () => {
                     setStep(1);
                     setSelectedClinic("");
                     setSelectedDoctor("");
+                    setSelectedService("");
                     setSelectedDate("");
                     setSelectedTime("");
                     setFormData({
