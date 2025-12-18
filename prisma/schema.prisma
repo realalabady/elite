@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Clinic {
+  id          Int          @id @default(autoincrement())
+  name        String
+  doctors     Doctor[]
+  appointments Appointment[]
+}
+
+model Doctor {
+  id          Int          @id @default(autoincrement())
+  name        String
+  clinicId    Int
+  clinic      Clinic       @relation(fields: [clinicId], references: [id])
+  services    DoctorService[]
+  workingHours WorkingHours[]
+  appointments Appointment[]
+}
+
+model Service {
+  id          Int          @id @default(autoincrement())
+  name        String
+  duration    Int // in minutes
+  doctors     DoctorService[]
+  appointments Appointment[]
+}
+
+model DoctorService {
+  doctorId Int
+  serviceId Int
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+  service  Service @relation(fields: [serviceId], references: [id])
+
+  @@id([doctorId, serviceId])
+}
+
+model WorkingHours {
+  id        Int    @id @default(autoincrement())
+  doctorId  Int
+  doctor    Doctor @relation(fields: [doctorId], references: [id])
+  dayOfWeek String
+  startTime String
+  endTime   String
+}
+
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  doctorId  Int
+  clinicId  Int
+  serviceId Int
+  date      DateTime
+  startTime String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+  service   Service  @relation(fields: [serviceId], references: [id])
+
+  @@unique([doctorId, date, startTime])
+}
