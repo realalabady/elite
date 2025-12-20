@@ -1,8 +1,10 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import * as path from "path";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Enable CORS for frontend
   app.enableCors({
@@ -10,10 +12,16 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global prefix for all routes
+  // Serve static files from public folder
+  app.useStaticAssets(path.join(__dirname, "../../public"), {
+    prefix: "/",
+  });
+
+  // Global prefix for all API routes
   app.setGlobalPrefix("api");
 
-  await app.listen(3000);
-  console.log("🚀 Backend server running on http://localhost:3000");
+  await app.listen(3001);
+  console.log("🚀 Backend server running on http://localhost:3001");
+  console.log("📁 Serving static files from public/");
 }
 bootstrap();
