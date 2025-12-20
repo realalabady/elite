@@ -1,6 +1,17 @@
-import { PrismaClient } from "../generated/prisma";
+import "dotenv/config";
+import { PrismaClient } from "../generated/prisma/index";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
-const prisma = new PrismaClient();
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgresql://username:password@localhost:5432/elite_medical_db";
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({
+  adapter,
+});
 
 async function main() {
   console.log("🌱 Starting database seeding...");

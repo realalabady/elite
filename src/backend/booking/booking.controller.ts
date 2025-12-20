@@ -6,6 +6,8 @@ import {
   Body,
   Param,
   Query,
+  HttpException,
+  HttpStatus,
 } from "@nestjs/common";
 import { BookingService } from "./booking.service";
 
@@ -32,16 +34,43 @@ export class BookingController {
 
   @Get("available-slots")
   async getAvailableSlots(
-    @Query("doctorId") doctorId: number,
+    @Query("doctorId") doctorId: string,
     @Query("date") date: string,
-    @Query("serviceId") serviceId: number
+    @Query("serviceId") serviceId: string
   ) {
-    const parsedDate = new Date(date);
-    return this.bookingService.getAvailableSlots(
-      doctorId,
-      parsedDate,
-      serviceId
-    );
+    try {
+      if (!doctorId || !date || !serviceId) {
+        throw new HttpException(
+          "Missing required query parameters: doctorId, date, serviceId",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      const parsedDoctorId = parseInt(doctorId, 10);
+      const parsedServiceId = parseInt(serviceId, 10);
+      const parsedDate = new Date(date);
+      
+      if (isNaN(parsedDoctorId) || isNaN(parsedServiceId) || isNaN(parsedDate.getTime())) {
+        throw new HttpException(
+          "Invalid query parameters. doctorId and serviceId must be numbers, date must be a valid date string.",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      
+      return await this.bookingService.getAvailableSlots(
+        parsedDoctorId,
+        parsedDate,
+        parsedServiceId
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error.message || "Internal server error",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 
   @Get("doctor/:doctorId")

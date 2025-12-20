@@ -85,14 +85,12 @@ export class BookingService {
             select: {
               id: true,
               name: true,
-              specialty: true,
             },
           },
           clinic: {
             select: {
               id: true,
               name: true,
-              address: true,
             },
           },
           service: {
@@ -119,60 +117,140 @@ export class BookingService {
           patientEmail: dto.patientEmail,
           patientPhone: dto.patientPhone,
           status: "confirmed",
-          createdAt: appointment.createdAt,
         },
         message: "Appointment booked successfully",
       };
     });
   }
 
-  async getAvailableSlots(doctorId: number, date: Date) {
-    // Get doctor's working hours for the day
-    const dayOfWeek = date.toLocaleLowerCase("en-US", { weekday: "long" });
+  async getAvailableSlots(doctorId: number, date: Date, serviceId: number) {
+    try {
+      // Normalize date to start of day for proper comparison
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
 
-    const workingHours = await this.prisma.workingHours.findFirst({
-      where: {
-        doctorId,
-        dayOfWeek,
-      },
-    });
+      // Get service duration
+      const service = await this.prisma.service.findUnique({
+        where: { id: serviceId },
+        select: { duration: true },
+      });
 
-    if (!workingHours) {
-      return [];
-    }
-
-    // Get booked appointments for the day
-    const bookedAppointments = await this.prisma.appointment.findMany({
-      where: {
-        doctorId,
-        date,
-      },
-      select: {
-        startTime: true,
-      },
-    });
-
-    const bookedTimes = bookedAppointments.map((apt) => apt.startTime);
-
-    // Generate available slots (assuming 30-minute intervals)
-    const availableSlots = [];
-    let currentTime = workingHours.startTime;
-
-    while (currentTime < workingHours.endTime) {
-      if (!bookedTimes.includes(currentTime)) {
-        availableSlots.push(currentTime);
+      if (!service) {
+        throw new Error(`Service with id ${serviceId} not found`);
       }
 
-      // Add 30 minutes
-      const [hours, minutes] = currentTime.split(":").map(Number);
-      const newMinutes = minutes + 30;
-      const newHours = hours + Math.floor(newMinutes / 60);
-      currentTime = `${String(newHours).padStart(2, "0")}:${String(
-        newMinutes % 60
-      ).padStart(2, "0")}`;
-    }
+      // Verify doctor provides this service
+      const doctorService = await this.prisma.doctorService.findUnique({
+        where: {
+          doctorId_serviceId: {
+            doctorId,
+            serviceId,
+          },
+        },
+      });
 
-    return availableSlots;
+      if (!doctorService) {
+        throw new Error(
+          `Doctor ${doctorId} does not provide service ${serviceId}`
+        );
+      }
+
+      // Get doctor's working hours for the day
+      const dayOfWeek = date
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase();
+
+      const workingHours = await this.prisma.workingHours.findFirst({
+        where: {
+          doctorId,
+          dayOfWeek,
+        },
+      });
+
+      if (!workingHours) {
+        return [];
+      }
+
+      // Get booked appointments for the day (using date range to match any time on that day)
+      const bookedAppointments = await this.prisma.appointment.findMany({
+        where: {
+          doctorId,
+          date: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        include: {
+          service: {
+            select: {
+              duration: true,
+            },
+          },
+        },
+      });
+
+      // Create a set of booked time slots (accounting for service duration)
+      const bookedSlots = new Set<string>();
+      bookedAppointments.forEach((apt) => {
+        const [startHours, startMinutes] = apt.startTime
+          .split(":")
+          .map(Number);
+        const duration = apt.service.duration;
+        const totalMinutes = startHours * 60 + startMinutes;
+        const endMinutes = totalMinutes + duration;
+
+        // Mark all 30-minute slots within the appointment duration as booked
+        for (let minutes = totalMinutes; minutes < endMinutes; minutes += 30) {
+          const slotHours = Math.floor(minutes / 60);
+          const slotMins = minutes % 60;
+          bookedSlots.add(
+            `${String(slotHours).padStart(2, "0")}:${String(slotMins).padStart(2, "0")}`
+          );
+        }
+      });
+
+      // Generate available slots using service duration as interval
+      const availableSlots = [];
+      const [startHours, startMinutes] = workingHours.startTime
+        .split(":")
+        .map(Number);
+      const [endHours, endMinutes] = workingHours.endTime.split(":").map(Number);
+
+      let currentMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+
+      while (currentMinutes + service.duration <= endTotalMinutes) {
+        const slotHours = Math.floor(currentMinutes / 60);
+        const slotMins = currentMinutes % 60;
+        const timeSlot = `${String(slotHours).padStart(2, "0")}:${String(slotMins).padStart(2, "0")}`;
+
+        // Check if this slot overlaps with any booked appointment
+        let isAvailable = true;
+        for (let checkMinutes = currentMinutes; checkMinutes < currentMinutes + service.duration; checkMinutes += 30) {
+          const checkHours = Math.floor(checkMinutes / 60);
+          const checkMins = checkMinutes % 60;
+          const checkSlot = `${String(checkHours).padStart(2, "0")}:${String(checkMins).padStart(2, "0")}`;
+          if (bookedSlots.has(checkSlot)) {
+            isAvailable = false;
+            break;
+          }
+        }
+
+        if (isAvailable) {
+          availableSlots.push(timeSlot);
+        }
+
+        // Move to next slot (using 30-minute intervals for granularity)
+        currentMinutes += 30;
+      }
+
+      return availableSlots;
+    } catch (error) {
+      console.error("Error in getAvailableSlots:", error);
+      throw error;
+    }
   }
 
   async getBookingsByDoctor(doctorId: number) {
