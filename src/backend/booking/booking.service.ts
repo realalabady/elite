@@ -1,9 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma.service";
+import { JsonServerService } from "../json-server.service";
 
 @Injectable()
 export class BookingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jsonServer: JsonServerService
+  ) {}
 
   async createBooking(data: {
     doctorId: number;
@@ -139,22 +143,6 @@ export class BookingService {
 
       if (!service) {
         throw new Error(`Service with id ${serviceId} not found`);
-      }
-
-      // Verify doctor provides this service
-      const doctorService = await this.prisma.doctorService.findUnique({
-        where: {
-          doctorId_serviceId: {
-            doctorId,
-            serviceId,
-          },
-        },
-      });
-
-      if (!doctorService) {
-        throw new Error(
-          `Doctor ${doctorId} does not provide service ${serviceId}`
-        );
       }
 
       // Get doctor's working hours for the day

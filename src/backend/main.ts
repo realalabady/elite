@@ -18,7 +18,7 @@ async function bootstrap() {
     prefix: "/",
   });
 
-  await app.listen(3002);
+  await app.listen(3001);
   console.log("🚀 Backend server running on http://localhost:3001");
   console.log("📁 Serving static files from public/");
 }
