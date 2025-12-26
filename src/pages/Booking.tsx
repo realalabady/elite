@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,9 +59,9 @@ const Booking = () => {
 
   // State management
   const [step, setStep] = useState<number>(1);
-  const [selectedClinic, setSelectedClinic] = useState<string | null>(null);
-  const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedClinic, setSelectedClinic] = useState<number | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
+  const [selectedService, setSelectedService] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [formData, setFormData] = useState({
@@ -108,32 +108,25 @@ const Booking = () => {
     const serviceParam = searchParams.get("service");
     if (clinicParam) {
       // Check if clinicParam is a valid clinic ID
-      const clinicExists = clinics.some((c) => c.id == clinicParam);
+      const clinicId = parseInt(clinicParam);
+      const clinicExists = clinics.some((c) => c.id === clinicId);
       if (clinicExists) {
-        setSelectedClinic(clinicParam);
+        setSelectedClinic(clinicId);
         setStep(2);
         loadDoctors(clinicParam);
-      } else {
-        // Invalid clinic ID - show error and stay on step 1
-        setErrors((prev) => ({ ...prev, doctors: "Invalid clinic selected" }));
-        toast({
-          title: "Error",
-          description: "The selected clinic is not available",
-          variant: "destructive",
-        });
       }
     }
     if (doctorParam) {
       const doc = doctors.find((d) => d.id === parseInt(doctorParam));
       if (doc) {
-        setSelectedClinic(doc.clinicId.toString());
-        setSelectedDoctor(doctorParam);
+        setSelectedClinic(doc.clinicId);
+        setSelectedDoctor(parseInt(doctorParam));
         setStep(serviceParam ? 2.5 : 3);
         loadServices(doctorParam);
       }
     }
     if (serviceParam) {
-      setSelectedService(serviceParam);
+      setSelectedService(parseInt(serviceParam));
       setStep(3);
     }
   }, [searchParams, doctors, clinics]);
@@ -143,7 +136,7 @@ const Booking = () => {
     if (selectedClinic && step >= 2) {
       loadDoctors(selectedClinic.toString());
     }
-  }, [selectedClinic]);
+  }, [selectedClinic, step]);
 
   // Load services when doctor changes
   useEffect(() => {
@@ -163,25 +156,43 @@ const Booking = () => {
     }
   }, [selectedDoctor, selectedDate, selectedService]);
 
-  const filteredDoctors = selectedClinic
-    ? doctors.filter((d) => d.clinicId === parseInt(selectedClinic))
-    : doctors;
+  const filteredDoctors = useMemo(
+    () =>
+      selectedClinic
+        ? doctors.filter((d) => d.clinicId === parseInt(selectedClinic))
+        : doctors,
+    [doctors, selectedClinic]
+  );
 
-  const steps: BookingStep[] = [
-    { num: 1, label: t("booking.step1"), icon: Building2 },
-    { num: 2, label: t("booking.step2"), icon: User },
-    { num: 2.5, label: t("booking.selectService"), icon: User },
-    { num: 3, label: t("booking.step3"), icon: Calendar },
-    { num: 4, label: t("booking.step4"), icon: Clock },
-    { num: 5, label: t("booking.step5"), icon: Check },
-  ];
+  const steps: BookingStep[] = useMemo(
+    () => [
+      { num: 1, label: t("booking.step1"), icon: Building2 },
+      { num: 2, label: t("booking.step2"), icon: User },
+      { num: 2.5, label: t("booking.selectService"), icon: User },
+      { num: 3, label: t("booking.step3"), icon: Calendar },
+      { num: 4, label: t("booking.step4"), icon: Clock },
+      { num: 5, label: t("booking.step5"), icon: Check },
+    ],
+    [t]
+  );
 
   const nextStep = () => {
     if (step === 1 && selectedClinic) {
-      setSearchParams({ clinic: selectedClinic });
+      setSearchParams({ clinic: selectedClinic.toString() });
       setStep(2);
-    } else if (step === 2) {
+    } else if (step === 2 && selectedDoctor) {
+      setSearchParams({
+        clinic: selectedClinic?.toString(),
+        doctor: selectedDoctor.toString(),
+      });
       setStep(2.5);
+    } else if (step === 2.5 && selectedService) {
+      setSearchParams({
+        clinic: selectedClinic?.toString(),
+        doctor: selectedDoctor?.toString(),
+        service: selectedService.toString(),
+      });
+      setStep(3);
     } else if (step === 4) {
       handleBooking();
     } else {
@@ -218,7 +229,7 @@ const Booking = () => {
     }
   };
 
-  const getDates = () => {
+  const getDates = useMemo(() => {
     const dates = [];
     for (let i = 1; i <= 14; i++) {
       const date = new Date();
@@ -235,17 +246,22 @@ const Booking = () => {
       });
     }
     return dates;
-  };
+  }, [lang]);
 
-  const selectedClinicData = clinics.find(
-    (c) => c.id === parseInt(selectedClinic || "")
+  const selectedClinicData = useMemo(
+    () =>
+      clinics.find((c) => c.id === parseInt(selectedClinic?.toString() || "")),
+    [clinics, selectedClinic]
   );
-  const selectedDoctorData = doctors.find(
-    (d) => d.id === parseInt(selectedDoctor || "")
+
+  const selectedDoctorData = useMemo(
+    () =>
+      doctors.find((d) => d.id === parseInt(selectedDoctor?.toString() || "")),
+    [doctors, selectedDoctor]
   );
 
   // Handle clinic selection
-  const handleClinicSelect = (clinicId: string) => {
+  const handleClinicSelect = (clinicId: number) => {
     setSelectedClinic(clinicId);
   };
 
@@ -335,9 +351,9 @@ const Booking = () => {
     setErrors((prev) => ({ ...prev, booking: null }));
     try {
       await bookingApi.createAppointment({
-        clinicId: selectedClinic,
-        doctorId: selectedDoctor,
-        serviceId: selectedService,
+        clinicId: selectedClinic?.toString() || "",
+        doctorId: selectedDoctor?.toString() || "",
+        serviceId: selectedService?.toString() || "",
         date: selectedDate,
         startTime: selectedTime,
         patientName: `${formData.firstName} ${formData.lastName}`,
@@ -621,7 +637,7 @@ const Booking = () => {
                   {t("booking.selectDate")}
                 </h2>
                 <div className="flex gap-2 overflow-x-auto pb-4 mb-8">
-                  {getDates().map((d) => (
+                  {getDates.map((d) => (
                     <button
                       key={d.value}
                       onClick={() => setSelectedDate(d.value)}
@@ -816,9 +832,9 @@ const Booking = () => {
                   className="mt-8"
                   onClick={() => {
                     setStep(1);
-                    setSelectedClinic("");
-                    setSelectedDoctor("");
-                    setSelectedService("");
+                    setSelectedClinic(null);
+                    setSelectedDoctor(null);
+                    setSelectedService(null);
                     setSelectedDate("");
                     setSelectedTime("");
                     setFormData({

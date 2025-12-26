@@ -18,10 +18,7 @@ async function bootstrap() {
     prefix: "/",
   });
 
-  // Global prefix for all API routes
-  app.setGlobalPrefix("api");
-
-  await app.listen(3001);
+  await app.listen(3002);
   console.log("🚀 Backend server running on http://localhost:3001");
   console.log("📁 Serving static files from public/");
 }
