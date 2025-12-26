@@ -5,7 +5,7 @@ import { Pool } from "pg";
 
 const connectionString =
   process.env.DATABASE_URL ||
-  "postgresql://username:password@localhost:5432/elite_medical_db";
+  "postgresql://username:amaduo2010@localhost:5432/elite_medical_db";
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 

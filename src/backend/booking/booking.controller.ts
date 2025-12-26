@@ -38,39 +38,33 @@ export class BookingController {
     @Query("date") date: string,
     @Query("serviceId") serviceId: string
   ) {
-    try {
-      if (!doctorId || !date || !serviceId) {
-        throw new HttpException(
-          "Missing required query parameters: doctorId, date, serviceId",
-          HttpStatus.BAD_REQUEST
-        );
-      }
-
-      const parsedDoctorId = parseInt(doctorId, 10);
-      const parsedServiceId = parseInt(serviceId, 10);
-      const parsedDate = new Date(date);
-      
-      if (isNaN(parsedDoctorId) || isNaN(parsedServiceId) || isNaN(parsedDate.getTime())) {
-        throw new HttpException(
-          "Invalid query parameters. doctorId and serviceId must be numbers, date must be a valid date string.",
-          HttpStatus.BAD_REQUEST
-        );
-      }
-      
-      return await this.bookingService.getAvailableSlots(
-        parsedDoctorId,
-        parsedDate,
-        parsedServiceId
-      );
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+    if (!doctorId || !date || !serviceId) {
       throw new HttpException(
-        error.message || "Internal server error",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        "Missing required query parameters: doctorId, date, serviceId",
+        HttpStatus.BAD_REQUEST
       );
     }
+
+    const parsedDoctorId = parseInt(doctorId, 10);
+    const parsedServiceId = parseInt(serviceId, 10);
+    const parsedDate = new Date(date);
+
+    if (
+      isNaN(parsedDoctorId) ||
+      isNaN(parsedServiceId) ||
+      isNaN(parsedDate.getTime())
+    ) {
+      throw new HttpException(
+        "Invalid query parameters. doctorId and serviceId must be numbers, date must be a valid date string.",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    return await this.bookingService.getAvailableSlots(
+      parsedDoctorId,
+      parsedDate,
+      parsedServiceId
+    );
   }
 
   @Get("doctor/:doctorId")

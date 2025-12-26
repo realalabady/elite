@@ -10,8 +10,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "backend:dev": "npx tsx --tsconfig tsconfig.backend.json src/backend/main.ts",
+    "backend:dev:json": "cross-env USE_JSON_SERVER=true npx tsx --tsconfig tsconfig.backend.json src/backend/main.ts",
     "backend:start": "npx tsx --tsconfig tsconfig.backend.json src/backend/main.ts",
-    "backend:start:prod": "tsc -p tsconfig.backend.json && node dist/main.js"
+    "backend:start:prod": "tsc -p tsconfig.backend.json && node dist/main.js",
+    "json-server": "json-server --watch db.json --port 3002",
+    "json-server:readonly": "json-server --watch db.json --port 3002 --read-only"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -84,10 +87,12 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^10.1.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
+    "json-server": "^1.0.0-beta.3",
     "lovable-tagger": "^1.1.13",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",

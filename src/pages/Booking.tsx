@@ -55,13 +55,13 @@ const Booking = () => {
   const { currentLanguage, isRTL } = useLanguage();
   const { toast } = useToast();
   const lang = currentLanguage as "en" | "ar";
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // State management
   const [step, setStep] = useState<number>(1);
-  const [selectedClinic, setSelectedClinic] = useState<string>("");
-  const [selectedDoctor, setSelectedDoctor] = useState<string>("");
-  const [selectedService, setSelectedService] = useState<string>("");
+  const [selectedClinic, setSelectedClinic] = useState<string | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [formData, setFormData] = useState({
@@ -99,20 +99,34 @@ const Booking = () => {
     loadClinics();
   }, []);
 
-  // Handle URL parameters
+  // Handle URL parameters - only run after clinics are loaded
   useEffect(() => {
+    if (clinics.length === 0) return; // Wait for clinics to load
+
     const clinicParam = searchParams.get("clinic");
     const doctorParam = searchParams.get("doctor");
     const serviceParam = searchParams.get("service");
     if (clinicParam) {
-      setSelectedClinic(clinicParam);
-      setStep(2);
-      loadDoctors(clinicParam);
+      // Check if clinicParam is a valid clinic ID
+      const clinicExists = clinics.some((c) => c.id == clinicParam);
+      if (clinicExists) {
+        setSelectedClinic(clinicParam);
+        setStep(2);
+        loadDoctors(clinicParam);
+      } else {
+        // Invalid clinic ID - show error and stay on step 1
+        setErrors((prev) => ({ ...prev, doctors: "Invalid clinic selected" }));
+        toast({
+          title: "Error",
+          description: "The selected clinic is not available",
+          variant: "destructive",
+        });
+      }
     }
     if (doctorParam) {
-      const doc = doctors.find((d) => d.id === doctorParam);
+      const doc = doctors.find((d) => d.id === parseInt(doctorParam));
       if (doc) {
-        setSelectedClinic(doc.clinicId);
+        setSelectedClinic(doc.clinicId.toString());
         setSelectedDoctor(doctorParam);
         setStep(serviceParam ? 2.5 : 3);
         loadServices(doctorParam);
@@ -122,31 +136,35 @@ const Booking = () => {
       setSelectedService(serviceParam);
       setStep(3);
     }
-  }, [searchParams, doctors]);
+  }, [searchParams, doctors, clinics]);
 
   // Load doctors when clinic changes
   useEffect(() => {
     if (selectedClinic && step >= 2) {
-      loadDoctors(selectedClinic);
+      loadDoctors(selectedClinic.toString());
     }
   }, [selectedClinic]);
 
   // Load services when doctor changes
   useEffect(() => {
     if (selectedDoctor && step >= 2) {
-      loadServices(selectedDoctor);
+      loadServices(selectedDoctor.toString());
     }
   }, [selectedDoctor]);
 
   // Load available slots when date changes
   useEffect(() => {
     if (selectedDoctor && selectedDate && selectedService) {
-      loadAvailableSlots(selectedDoctor, selectedDate, selectedService);
+      loadAvailableSlots(
+        selectedDoctor.toString(),
+        selectedDate,
+        selectedService.toString()
+      );
     }
   }, [selectedDoctor, selectedDate, selectedService]);
 
   const filteredDoctors = selectedClinic
-    ? doctors.filter((d) => d.clinicId === selectedClinic)
+    ? doctors.filter((d) => d.clinicId === parseInt(selectedClinic))
     : doctors;
 
   const steps: BookingStep[] = [
@@ -159,7 +177,10 @@ const Booking = () => {
   ];
 
   const nextStep = () => {
-    if (step === 2) {
+    if (step === 1 && selectedClinic) {
+      setSearchParams({ clinic: selectedClinic });
+      setStep(2);
+    } else if (step === 2) {
       setStep(2.5);
     } else if (step === 4) {
       handleBooking();
@@ -216,8 +237,17 @@ const Booking = () => {
     return dates;
   };
 
-  const selectedClinicData = clinics.find((c) => c.id === selectedClinic);
-  const selectedDoctorData = doctors.find((d) => d.id === selectedDoctor);
+  const selectedClinicData = clinics.find(
+    (c) => c.id === parseInt(selectedClinic || "")
+  );
+  const selectedDoctorData = doctors.find(
+    (d) => d.id === parseInt(selectedDoctor || "")
+  );
+
+  // Handle clinic selection
+  const handleClinicSelect = (clinicId: string) => {
+    setSelectedClinic(clinicId);
+  };
 
   // API functions
   const loadClinics = async () => {
@@ -282,11 +312,11 @@ const Booking = () => {
     setLoading((prev) => ({ ...prev, slots: true }));
     setErrors((prev) => ({ ...prev, slots: null }));
     try {
-      const data = await bookingApi.getAvailableSlots(
+      const data = await bookingApi.getAvailableSlots({
         doctorId,
         date,
-        serviceId
-      );
+        serviceId,
+      });
       setAvailableSlots(data);
     } catch (error) {
       setErrors((prev) => ({ ...prev, slots: error.message }));
@@ -309,8 +339,10 @@ const Booking = () => {
         doctorId: selectedDoctor,
         serviceId: selectedService,
         date: selectedDate,
-        time: selectedTime,
-        patientInfo: formData,
+        startTime: selectedTime,
+        patientName: `${formData.firstName} ${formData.lastName}`,
+        patientEmail: formData.email,
+        patientPhone: formData.phone,
       });
       setStep(5);
       toast({
@@ -441,7 +473,7 @@ const Booking = () => {
                     clinics.map((clinic) => (
                       <button
                         key={clinic.id}
-                        onClick={() => setSelectedClinic(clinic.id)}
+                        onClick={() => handleClinicSelect(clinic.id)}
                         className={cn(
                           "p-4 rounded-xl border-2 text-left transition-all",
                           selectedClinic === clinic.id
@@ -450,10 +482,10 @@ const Booking = () => {
                         )}
                       >
                         <h3 className="font-semibold text-foreground mb-1">
-                          {clinic.name[lang]}
+                          {clinic.name}
                         </h3>
                         <p className="text-sm text-muted-foreground line-clamp-2">
-                          {clinic.description[lang]}
+                          {clinic.description || "Medical clinic services"}
                         </p>
                       </button>
                     ))
@@ -517,15 +549,15 @@ const Booking = () => {
                       >
                         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <span className="text-2xl font-display font-bold text-primary">
-                            {doctor.name[lang].charAt(0)}
+                            {doctor.name.charAt(0)}
                           </span>
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground">
-                            {doctor.name[lang]}
+                            {doctor.name}
                           </h3>
                           <p className="text-sm text-primary">
-                            {doctor.specialty[lang]}
+                            {doctor.specialty || "Medical Specialist"}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             {doctor.experience}{" "}
@@ -563,10 +595,10 @@ const Booking = () => {
                       )}
                     >
                       <h3 className="font-semibold text-foreground mb-1">
-                        {service.name[lang]}
+                        {service.name}
                       </h3>
                       <p className="text-sm text-muted-foreground line-clamp-2">
-                        {service.description[lang]}
+                        {service.description || "Medical service"}
                       </p>
                       <p className="text-sm font-medium text-primary mt-2">
                         {service.price} {lang === "ar" ? "ريال" : "SAR"}
@@ -737,7 +769,7 @@ const Booking = () => {
                         {t("booking.step1")}:
                       </span>
                       <span className="font-medium">
-                        {selectedClinicData?.name[lang]}
+                        {selectedClinicData?.name}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -745,7 +777,7 @@ const Booking = () => {
                         {t("booking.step2")}:
                       </span>
                       <span className="font-medium">
-                        {selectedDoctorData?.name[lang]}
+                        {selectedDoctorData?.name}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -753,11 +785,7 @@ const Booking = () => {
                         {t("booking.selectService")}:
                       </span>
                       <span className="font-medium">
-                        {
-                          services.find((s) => s.id === selectedService)?.name[
-                            lang
-                          ]
-                        }
+                        {services.find((s) => s.id === selectedService)?.name}
                       </span>
                     </div>
                     <div className="flex justify-between">

@@ -194,9 +194,7 @@ export class BookingService {
       // Create a set of booked time slots (accounting for service duration)
       const bookedSlots = new Set<string>();
       bookedAppointments.forEach((apt) => {
-        const [startHours, startMinutes] = apt.startTime
-          .split(":")
-          .map(Number);
+        const [startHours, startMinutes] = apt.startTime.split(":").map(Number);
         const duration = apt.service.duration;
         const totalMinutes = startHours * 60 + startMinutes;
         const endMinutes = totalMinutes + duration;
@@ -206,7 +204,10 @@ export class BookingService {
           const slotHours = Math.floor(minutes / 60);
           const slotMins = minutes % 60;
           bookedSlots.add(
-            `${String(slotHours).padStart(2, "0")}:${String(slotMins).padStart(2, "0")}`
+            `${String(slotHours).padStart(2, "0")}:${String(slotMins).padStart(
+              2,
+              "0"
+            )}`
           );
         }
       });
@@ -216,7 +217,9 @@ export class BookingService {
       const [startHours, startMinutes] = workingHours.startTime
         .split(":")
         .map(Number);
-      const [endHours, endMinutes] = workingHours.endTime.split(":").map(Number);
+      const [endHours, endMinutes] = workingHours.endTime
+        .split(":")
+        .map(Number);
 
       let currentMinutes = startHours * 60 + startMinutes;
       const endTotalMinutes = endHours * 60 + endMinutes;
@@ -224,14 +227,22 @@ export class BookingService {
       while (currentMinutes + service.duration <= endTotalMinutes) {
         const slotHours = Math.floor(currentMinutes / 60);
         const slotMins = currentMinutes % 60;
-        const timeSlot = `${String(slotHours).padStart(2, "0")}:${String(slotMins).padStart(2, "0")}`;
+        const timeSlot = `${String(slotHours).padStart(2, "0")}:${String(
+          slotMins
+        ).padStart(2, "0")}`;
 
         // Check if this slot overlaps with any booked appointment
         let isAvailable = true;
-        for (let checkMinutes = currentMinutes; checkMinutes < currentMinutes + service.duration; checkMinutes += 30) {
+        for (
+          let checkMinutes = currentMinutes;
+          checkMinutes < currentMinutes + service.duration;
+          checkMinutes += 30
+        ) {
           const checkHours = Math.floor(checkMinutes / 60);
           const checkMins = checkMinutes % 60;
-          const checkSlot = `${String(checkHours).padStart(2, "0")}:${String(checkMins).padStart(2, "0")}`;
+          const checkSlot = `${String(checkHours).padStart(2, "0")}:${String(
+            checkMins
+          ).padStart(2, "0")}`;
           if (bookedSlots.has(checkSlot)) {
             isAvailable = false;
             break;

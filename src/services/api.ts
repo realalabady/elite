@@ -3,7 +3,7 @@ import axios from "axios";
 // Create axios instance with base configuration
 const api = axios.create({
   // Backend uses a global prefix `/api` (set in backend `main.ts`)
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3002",
   headers: {
     "Content-Type": "application/json",
   },
@@ -42,22 +42,22 @@ export default api;
 // API endpoints
 export const bookingApi = {
   // Get all clinics
-  getClinics: () => api.get("/clinics"),
+  getClinics: () => api.get("/clinics").then((res) => res.data),
 
   // Get doctors by clinic
   getDoctors: (clinicId?: string) =>
-    api.get("/doctors", { params: { clinicId } }),
+    api.get("/doctors", { params: { clinicId } }).then((res) => res.data),
 
   // Get services by doctor
   getServices: (doctorId?: string) =>
-    api.get("/services", { params: { doctorId } }),
+    api.get("/services", { params: { doctorId } }).then((res) => res.data),
 
   // Get available slots
   getAvailableSlots: (params: {
     doctorId: string;
     date: string;
     serviceId?: string;
-  }) => api.get("/booking/available-slots", { params }),
+  }) => api.get("/booking/available-slots", { params }).then((res) => res.data),
 
   // Create appointment
   createAppointment: (data: {
@@ -69,15 +69,15 @@ export const bookingApi = {
     patientName: string;
     patientEmail: string;
     patientPhone?: string;
-  }) => api.post("/appointments", data),
+  }) => api.post("/appointments", data).then((res) => res.data),
 
   // Get working hours for a doctor
   getWorkingHours: (doctorId: string) =>
-    api.get(`/doctors/${doctorId}/working-hours`),
+    api.get(`/doctors/${doctorId}/working-hours`).then((res) => res.data),
 };
 
 export interface Clinic {
-  id: string;
+  id: number;
   name: string;
   description?: string;
   location?: string;
@@ -87,18 +87,18 @@ export interface Clinic {
 }
 
 export interface Doctor {
-  id: string;
+  id: number;
   name: string;
   specialty: string;
   experience: number;
-  clinicId: string;
+  clinicId: number;
   image?: string;
   bio?: string;
   services?: Service[];
 }
 
 export interface Service {
-  id: string;
+  id: number;
   name: string;
   duration: number;
   price?: number;
