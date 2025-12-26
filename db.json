@@ -1,103 +1,103 @@
- {
+{
   "clinics": [
     {
-      "id": 1,
+      "id": "1",
       "name": "Elite Medical Center"
     },
     {
-      "id": 2,
+      "id": "2",
       "name": "Downtown Health Clinic"
     },
     {
-      "id": 3,
+      "id": "3",
       "name": "Sunrise Family Practice"
     },
     {
-      "id": 4,
+      "id": "4",
       "name": "CityCare Hospital"
     }
   ],
   "services": [
     {
-      "id": 1,
+      "id": "1",
       "name": "General Consultation",
       "duration": 30
     },
     {
-      "id": 2,
+      "id": "2",
       "name": "Specialist Consultation",
       "duration": 45
     },
     {
-      "id": 3,
+      "id": "3",
       "name": "Follow-up Visit",
       "duration": 20
     },
     {
-      "id": 4,
+      "id": "4",
       "name": "Health Check-up",
       "duration": 60
     }
   ],
   "doctors": [
     {
-      "id": 1,
+      "id": "1",
       "name": "Dr. Sarah Johnson",
       "clinicId": 1,
       "specialty": "General Medicine",
       "experience": 8
     },
     {
-      "id": 2,
+      "id": "2",
       "name": "Dr. Michael Chen",
       "clinicId": 1,
       "specialty": "Cardiology",
       "experience": 12
     },
     {
-      "id": 3,
+      "id": "3",
       "name": "Dr. Emily Davis",
       "clinicId": 2,
       "specialty": "Pediatrics",
       "experience": 6
     },
     {
-      "id": 4,
+      "id": "4",
       "name": "Dr. David Wilson",
       "clinicId": 3,
       "specialty": "Dermatology",
       "experience": 10
     },
     {
-      "id": 5,
+      "id": "5",
       "name": "Dr. Lisa Rodriguez",
       "clinicId": 2,
       "specialty": "Internal Medicine",
       "experience": 9
     },
     {
-      "id": 6,
+      "id": "6",
       "name": "Dr. James Thompson",
       "clinicId": 3,
       "specialty": "Orthopedics",
       "experience": 15
     },
     {
-      "id": 7,
+      "id": "7",
       "name": "Dr. Maria Garcia",
       "clinicId": 4,
       "specialty": "Neurology",
       "experience": 11
     },
     {
-      "id": 8,
+      "id": "8",
       "name": "Dr. Robert Lee",
       "clinicId": 4,
       "specialty": "Surgery",
       "experience": 14
     },
     {
-      "id": 9,
+      "id": "9",
       "name": "Dr. Jennifer Brown",
       "clinicId": 4,
       "specialty": "Gynecology",
@@ -107,403 +107,423 @@
   "doctorServices": [
     {
       "doctorId": 1,
-      "serviceId": 1
+      "serviceId": 1,
+      "id": "5702"
     },
     {
       "doctorId": 1,
-      "serviceId": 3
+      "serviceId": 3,
+      "id": "183e"
     },
     {
       "doctorId": 1,
-      "serviceId": 4
+      "serviceId": 4,
+      "id": "10ab"
     },
     {
       "doctorId": 2,
-      "serviceId": 2
+      "serviceId": 2,
+      "id": "7f8f"
     },
     {
       "doctorId": 2,
-      "serviceId": 3
+      "serviceId": 3,
+      "id": "5cc3"
     },
     {
       "doctorId": 2,
-      "serviceId": 4
+      "serviceId": 4,
+      "id": "046b"
     },
     {
       "doctorId": 3,
-      "serviceId": 1
+      "serviceId": 1,
+      "id": "39ea"
     },
     {
       "doctorId": 3,
-      "serviceId": 4
+      "serviceId": 4,
+      "id": "6336"
     },
     {
       "doctorId": 4,
-      "serviceId": 1
+      "serviceId": 1,
+      "id": "e0ba"
     },
     {
       "doctorId": 4,
-      "serviceId": 2
+      "serviceId": 2,
+      "id": "d98d"
     },
     {
       "doctorId": 5,
-      "serviceId": 1
+      "serviceId": 1,
+      "id": "9776"
     },
     {
       "doctorId": 5,
-      "serviceId": 4
+      "serviceId": 4,
+      "id": "eb45"
     },
     {
       "doctorId": 6,
-      "serviceId": 2
+      "serviceId": 2,
+      "id": "1ae3"
     },
     {
       "doctorId": 6,
-      "serviceId": 3
+      "serviceId": 3,
+      "id": "0bd5"
     },
     {
       "doctorId": 7,
-      "serviceId": 2
+      "serviceId": 2,
+      "id": "8d07"
     },
     {
       "doctorId": 7,
-      "serviceId": 4
+      "serviceId": 4,
+      "id": "d596"
     },
     {
       "doctorId": 8,
-      "serviceId": 2
+      "serviceId": 2,
+      "id": "7614"
     },
     {
       "doctorId": 8,
-      "serviceId": 3
+      "serviceId": 3,
+      "id": "47fc"
     },
     {
       "doctorId": 9,
-      "serviceId": 1
+      "serviceId": 1,
+      "id": "d527"
     },
     {
       "doctorId": 9,
-      "serviceId": 4
+      "serviceId": 4,
+      "id": "53b2"
     }
   ],
   "workingHours": [
     {
-      "id": 1,
+      "id": "1",
       "doctorId": 1,
       "dayOfWeek": "monday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 2,
+      "id": "2",
       "doctorId": 1,
       "dayOfWeek": "tuesday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 3,
+      "id": "3",
       "doctorId": 1,
       "dayOfWeek": "wednesday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 4,
+      "id": "4",
       "doctorId": 1,
       "dayOfWeek": "thursday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 5,
+      "id": "5",
       "doctorId": 1,
       "dayOfWeek": "friday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 6,
+      "id": "6",
       "doctorId": 2,
       "dayOfWeek": "monday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 7,
+      "id": "7",
       "doctorId": 2,
       "dayOfWeek": "tuesday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 8,
+      "id": "8",
       "doctorId": 2,
       "dayOfWeek": "wednesday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 9,
+      "id": "9",
       "doctorId": 2,
       "dayOfWeek": "thursday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 10,
+      "id": "10",
       "doctorId": 2,
       "dayOfWeek": "friday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 11,
+      "id": "11",
       "doctorId": 2,
       "dayOfWeek": "saturday",
       "startTime": "09:00",
       "endTime": "13:00"
     },
     {
-      "id": 12,
+      "id": "12",
       "doctorId": 3,
       "dayOfWeek": "monday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 13,
+      "id": "13",
       "doctorId": 3,
       "dayOfWeek": "tuesday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 14,
+      "id": "14",
       "doctorId": 3,
       "dayOfWeek": "wednesday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 15,
+      "id": "15",
       "doctorId": 3,
       "dayOfWeek": "thursday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 16,
+      "id": "16",
       "doctorId": 3,
       "dayOfWeek": "friday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 17,
+      "id": "17",
       "doctorId": 4,
       "dayOfWeek": "monday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 18,
+      "id": "18",
       "doctorId": 4,
       "dayOfWeek": "tuesday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 19,
+      "id": "19",
       "doctorId": 4,
       "dayOfWeek": "wednesday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 20,
+      "id": "20",
       "doctorId": 4,
       "dayOfWeek": "thursday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 21,
+      "id": "21",
       "doctorId": 4,
       "dayOfWeek": "friday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 22,
+      "id": "22",
       "doctorId": 5,
       "dayOfWeek": "monday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 23,
+      "id": "23",
       "doctorId": 5,
       "dayOfWeek": "tuesday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 24,
+      "id": "24",
       "doctorId": 5,
       "dayOfWeek": "wednesday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 25,
+      "id": "25",
       "doctorId": 5,
       "dayOfWeek": "thursday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 26,
+      "id": "26",
       "doctorId": 5,
       "dayOfWeek": "friday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 27,
+      "id": "27",
       "doctorId": 6,
       "dayOfWeek": "monday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 28,
+      "id": "28",
       "doctorId": 6,
       "dayOfWeek": "tuesday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 29,
+      "id": "29",
       "doctorId": 6,
       "dayOfWeek": "wednesday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 30,
+      "id": "30",
       "doctorId": 6,
       "dayOfWeek": "thursday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 31,
+      "id": "31",
       "doctorId": 6,
       "dayOfWeek": "friday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 32,
+      "id": "32",
       "doctorId": 7,
       "dayOfWeek": "monday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 33,
+      "id": "33",
       "doctorId": 7,
       "dayOfWeek": "tuesday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 34,
+      "id": "34",
       "doctorId": 7,
       "dayOfWeek": "wednesday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 35,
+      "id": "35",
       "doctorId": 7,
       "dayOfWeek": "thursday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 36,
+      "id": "36",
       "doctorId": 7,
       "dayOfWeek": "friday",
       "startTime": "09:00",
       "endTime": "17:00"
     },
     {
-      "id": 37,
+      "id": "37",
       "doctorId": 8,
       "dayOfWeek": "monday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 38,
+      "id": "38",
       "doctorId": 8,
       "dayOfWeek": "tuesday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 39,
+      "id": "39",
       "doctorId": 8,
       "dayOfWeek": "wednesday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 40,
+      "id": "40",
       "doctorId": 8,
       "dayOfWeek": "thursday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 41,
+      "id": "41",
       "doctorId": 8,
       "dayOfWeek": "friday",
       "startTime": "08:00",
       "endTime": "16:00"
     },
     {
-      "id": 42,
+      "id": "42",
       "doctorId": 9,
       "dayOfWeek": "monday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 43,
+      "id": "43",
       "doctorId": 9,
       "dayOfWeek": "tuesday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 44,
+      "id": "44",
       "doctorId": 9,
       "dayOfWeek": "wednesday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 45,
+      "id": "45",
       "doctorId": 9,
       "dayOfWeek": "thursday",
       "startTime": "10:00",
       "endTime": "18:00"
     },
     {
-      "id": 46,
+      "id": "46",
       "doctorId": 9,
       "dayOfWeek": "friday",
       "startTime": "10:00",
@@ -512,7 +532,7 @@
   ],
   "appointments": [
     {
-      "id": 1,
+      "id": "1",
       "doctorId": 1,
       "clinicId": 1,
       "serviceId": 1,
@@ -520,14 +540,23 @@
       "startTime": "10:00"
     },
     {
-      "id": 2,
+      "id": "2",
       "doctorId": 2,
       "clinicId": 1,
       "serviceId": 2,
       "date": "2024-12-21T00:00:00.000Z",
       "startTime": "14:00"
+    },
+    {
+      "id": "4f1d",
+      "clinicId": "",
+      "doctorId": "",
+      "serviceId": "1",
+      "date": "2025-12-31",
+      "startTime": "17:00",
+      "patientName": "ahmed ali",
+      "patientEmail": "fakelabady@gmail.com",
+      "patientPhone": "055"
     }
   ]
 }
-
-
