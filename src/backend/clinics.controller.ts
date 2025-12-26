@@ -1,16 +1,28 @@
 import { Controller, Get } from "@nestjs/common";
 import { PrismaService } from "./prisma.service";
+import { JsonServerService } from "./json-server.service";
 
 @Controller("clinics")
 export class ClinicsController {
-  constructor(private readonly prisma: PrismaService) {}
+  private useJsonServer = process.env.USE_JSON_SERVER === "true";
+
+  constructor(
+    private prisma: PrismaService,
+    private jsonServer: JsonServerService
+  ) {}
 
   @Get()
   async getClinics() {
-    return this.prisma.clinic.findMany({
-      include: {
-        doctors: true,
-      },
-    });
+    if (this.useJsonServer) {
+      return this.jsonServer.clinic.findMany({
+        include: { doctors: true },
+      });
+    } else {
+      return this.prisma.clinic.findMany({
+        include: {
+          doctors: true,
+        },
+      });
+    }
   }
 }
