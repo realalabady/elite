@@ -57,7 +57,7 @@ export const bookingApi = {
     doctorId: string;
     date: string;
     serviceId?: string;
-  }) => api.get("/booking/available-slots", { params }).then((res) => res.data),
+  }) => api.get("/available-slots", { params }).then((res) => res.data),
 
   // Create appointment
   createAppointment: (data: {

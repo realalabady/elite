@@ -13,7 +13,7 @@
     "backend:dev:json": "cross-env USE_JSON_SERVER=true npx tsx --tsconfig tsconfig.backend.json src/backend/main.ts",
     "backend:start": "npx tsx --tsconfig tsconfig.backend.json src/backend/main.ts",
     "backend:start:prod": "tsc -p tsconfig.backend.json && node dist/main.js",
-    "json-server": "json-server --watch db.json --port 3002",
+    "json-server": "json-server --watch db.json --port 3002 --middlewares middleware.cjs",
     "json-server:readonly": "json-server --watch db.json --port 3002 --read-only"
   },
   "dependencies": {
@@ -60,6 +60,7 @@
     "i18next": "^25.7.2",
     "i18next-browser-languagedetector": "^8.2.0",
     "input-otp": "^1.4.2",
+    "json-server": "^0.17.4",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
@@ -92,7 +93,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
-    "json-server": "^1.0.0-beta.3",
     "lovable-tagger": "^1.1.13",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",

@@ -145,15 +145,23 @@ const Booking = () => {
     }
   }, [selectedDoctor]);
 
-  // Load available slots when date changes
+  // Debounced load available slots when date/service/doctor change to reduce requests
   useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | null = null;
     if (selectedDoctor && selectedDate && selectedService) {
-      loadAvailableSlots(
-        selectedDoctor.toString(),
-        selectedDate,
-        selectedService.toString()
-      );
+      // debounce by 300ms
+      t = setTimeout(() => {
+        loadAvailableSlots(
+          selectedDoctor.toString(),
+          selectedDate,
+          selectedService.toString()
+        );
+      }, 300);
     }
+
+    return () => {
+      if (t) clearTimeout(t);
+    };
   }, [selectedDoctor, selectedDate, selectedService]);
 
   const filteredDoctors = useMemo(
@@ -177,6 +185,15 @@ const Booking = () => {
   );
 
   const nextStep = () => {
+    console.log("[Booking] nextStep called", {
+      step,
+      selectedClinic,
+      selectedDoctor,
+      selectedService,
+      selectedDate,
+      selectedTime,
+      canProceed: canProceed(),
+    });
     if (step === 1 && selectedClinic) {
       setSearchParams({ clinic: selectedClinic.toString() });
       setStep(2);
@@ -195,6 +212,43 @@ const Booking = () => {
       setStep(3);
     } else if (step === 4) {
       handleBooking();
+    } else if (step === 3) {
+      // Before advancing from date/time selection, ensure selected time is actually available.
+      const proceed = async () => {
+        if (
+          !selectedDate ||
+          !selectedTime ||
+          !selectedDoctor ||
+          !selectedService
+        ) {
+          setStep((s) => Math.min(s + 1, 5));
+          return;
+        }
+
+        // If slots are empty or don't contain the selected time, re-fetch and use returned data
+        if (!availableSlots || !availableSlots.includes(selectedTime)) {
+          try {
+            const slots = await loadAvailableSlots(
+              selectedDoctor.toString(),
+              selectedDate,
+              selectedService.toString()
+            );
+            if (slots && slots.includes(selectedTime)) {
+              setStep(4);
+              return;
+            }
+          } catch (err) {
+            // loadAvailableSlots will show toast on error
+            return;
+          }
+        }
+
+        // availableSlots already contains selected time
+        setStep(4);
+      };
+
+      // run the check
+      proceed();
     } else {
       setStep((s) => Math.min(s + 1, 5));
     }
@@ -334,6 +388,7 @@ const Booking = () => {
         serviceId,
       });
       setAvailableSlots(data);
+      return data;
     } catch (error) {
       setErrors((prev) => ({ ...prev, slots: error.message }));
       toast({
@@ -341,6 +396,7 @@ const Booking = () => {
         description: "Failed to load available slots",
         variant: "destructive",
       });
+      return [];
     } finally {
       setLoading((prev) => ({ ...prev, slots: false }));
     }
@@ -640,7 +696,10 @@ const Booking = () => {
                   {getDates.map((d) => (
                     <button
                       key={d.value}
-                      onClick={() => setSelectedDate(d.value)}
+                      onClick={() => {
+                        console.log("[Booking] date selected", d.value);
+                        setSelectedDate(d.value);
+                      }}
                       className={cn(
                         "flex flex-col items-center p-3 rounded-xl border-2 min-w-[80px] transition-all",
                         selectedDate === d.value
@@ -665,20 +724,32 @@ const Booking = () => {
                   {t("booking.selectTime")}
                 </h3>
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                  {timeSlots.map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      className={cn(
-                        "py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all",
-                        selectedTime === time
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      {time}
-                    </button>
-                  ))}
+                  {timeSlots.map((time) => {
+                    const isAvailable =
+                      Array.isArray(availableSlots) &&
+                      availableSlots.includes(time);
+                    return (
+                      <button
+                        key={time}
+                        onClick={() => {
+                          if (!isAvailable) return;
+                          console.log("[Booking] time selected", time);
+                          setSelectedTime(time);
+                        }}
+                        disabled={!isAvailable || loading.slots}
+                        className={cn(
+                          "py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all",
+                          !isAvailable
+                            ? "opacity-50 cursor-not-allowed border-border"
+                            : selectedTime === time
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
