@@ -974,6 +974,8 @@ const Booking = () => {
                       phone: "",
                       notes: "",
                     });
+                    // Clear URL params so they don't re-populate the form
+                    setSearchParams({});
                   }}
                 >
                   {t("booking.bookAnother")}
