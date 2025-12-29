@@ -711,6 +711,28 @@
       "patientEmail": "kgkj",
       "patientPhone": "fjh",
       "id": "042-VaR"
+    },
+    {
+      "clinicId": "3",
+      "doctorId": "6",
+      "serviceId": "1",
+      "date": "2026-01-07",
+      "startTime": "12:00",
+      "patientName": "ahmed gg",
+      "patientEmail": "fake@gmail.com",
+      "patientPhone": "0534955842",
+      "id": "ilupFbf"
+    },
+    {
+      "clinicId": "1",
+      "doctorId": "1",
+      "serviceId": "3",
+      "date": "2026-01-05",
+      "startTime": "10:30",
+      "patientName": "ff e",
+      "patientEmail": "fakealabad@gmail.com",
+      "patientPhone": "0534955842",
+      "id": "599V38p"
     }
   ]
 }
