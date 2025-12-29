@@ -106,8 +106,12 @@ const Booking = () => {
     const clinicParam = searchParams.get("clinic");
     const doctorParam = searchParams.get("doctor");
     const serviceParam = searchParams.get("service");
-    if (clinicParam) {
-      // Check if clinicParam is a valid clinic ID
+
+    // Only update state if values actually changed (prevent unnecessary re-fetches)
+    if (
+      clinicParam &&
+      (!selectedClinic || selectedClinic.toString() !== clinicParam)
+    ) {
       const clinicId = parseInt(clinicParam);
       const clinicExists = clinics.some((c) => c.id === clinicId);
       if (clinicExists) {
@@ -116,7 +120,10 @@ const Booking = () => {
         loadDoctors(clinicParam);
       }
     }
-    if (doctorParam) {
+    if (
+      doctorParam &&
+      (!selectedDoctor || selectedDoctor.toString() !== doctorParam)
+    ) {
       const doc = doctors.find((d) => d.id === parseInt(doctorParam));
       if (doc) {
         setSelectedClinic(doc.clinicId);
@@ -125,11 +132,21 @@ const Booking = () => {
         loadServices(doctorParam);
       }
     }
-    if (serviceParam) {
+    if (
+      serviceParam &&
+      (!selectedService || selectedService.toString() !== serviceParam)
+    ) {
       setSelectedService(parseInt(serviceParam));
       setStep(3);
     }
-  }, [searchParams, doctors, clinics]);
+  }, [
+    searchParams,
+    doctors,
+    clinics,
+    selectedClinic,
+    selectedDoctor,
+    selectedService,
+  ]);
 
   // Load doctors when clinic changes
   useEffect(() => {
@@ -145,10 +162,27 @@ const Booking = () => {
     }
   }, [selectedDoctor]);
 
+  // Update URL params immediately when a service is selected
+  useEffect(() => {
+    if (selectedService != null) {
+      setSearchParams({
+        clinic: selectedClinic?.toString() || "",
+        doctor: selectedDoctor?.toString() || "",
+        service: selectedService.toString(),
+      });
+    }
+  }, [selectedService]);
+
   // Debounced load available slots when date/service/doctor change to reduce requests
   useEffect(() => {
+    console.log("[Booking] Slot useEffect triggered:", {
+      selectedDoctor,
+      selectedDate,
+      selectedService,
+    });
     let t: ReturnType<typeof setTimeout> | null = null;
     if (selectedDoctor && selectedDate && selectedService) {
+      console.log("[Booking] All conditions met, will call loadAvailableSlots");
       // debounce by 300ms
       t = setTimeout(() => {
         loadAvailableSlots(
@@ -215,6 +249,13 @@ const Booking = () => {
     } else if (step === 3) {
       // Before advancing from date/time selection, ensure selected time is actually available.
       const proceed = async () => {
+        console.log("[Booking] proceed() start", {
+          selectedDate,
+          selectedTime,
+          selectedDoctor,
+          selectedService,
+          availableSlots,
+        });
         if (
           !selectedDate ||
           !selectedTime ||
@@ -233,7 +274,13 @@ const Booking = () => {
               selectedDate,
               selectedService.toString()
             );
-            if (slots && slots.includes(selectedTime)) {
+            console.log("[Booking] fetched slots", { slots });
+            const has = Array.isArray(slots) && slots.includes(selectedTime);
+            console.log(
+              "[Booking] selectedTime included in fetched slots?",
+              has
+            );
+            if (has) {
               setStep(4);
               return;
             }
@@ -302,17 +349,21 @@ const Booking = () => {
     return dates;
   }, [lang]);
 
-  const selectedClinicData = useMemo(
-    () =>
-      clinics.find((c) => c.id === parseInt(selectedClinic?.toString() || "")),
-    [clinics, selectedClinic]
-  );
+  const selectedClinicData = useMemo(() => {
+    const id =
+      typeof selectedClinic === "string"
+        ? parseInt(selectedClinic, 10)
+        : selectedClinic;
+    return clinics.find((c) => c.id === id);
+  }, [clinics, selectedClinic]);
 
-  const selectedDoctorData = useMemo(
-    () =>
-      doctors.find((d) => d.id === parseInt(selectedDoctor?.toString() || "")),
-    [doctors, selectedDoctor]
-  );
+  const selectedDoctorData = useMemo(() => {
+    const id =
+      typeof selectedDoctor === "string"
+        ? parseInt(selectedDoctor, 10)
+        : selectedDoctor;
+    return doctors.find((d) => d.id === id);
+  }, [doctors, selectedDoctor]);
 
   // Handle clinic selection
   const handleClinicSelect = (clinicId: number) => {
@@ -379,6 +430,11 @@ const Booking = () => {
     date: string,
     serviceId: string
   ) => {
+    console.log("[Booking] loadAvailableSlots called with:", {
+      doctorId,
+      date,
+      serviceId,
+    });
     setLoading((prev) => ({ ...prev, slots: true }));
     setErrors((prev) => ({ ...prev, slots: null }));
     try {
@@ -387,6 +443,7 @@ const Booking = () => {
         date,
         serviceId,
       });
+      console.log("[Booking] getAvailableSlots returned:", data);
       setAvailableSlots(data);
       return data;
     } catch (error) {
