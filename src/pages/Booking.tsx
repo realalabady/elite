@@ -71,6 +71,12 @@ const Booking = () => {
     phone: "",
     notes: "",
   });
+  const [formErrors, setFormErrors] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    phone: false,
+  });
 
   // Data state
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -245,7 +251,10 @@ const Booking = () => {
       });
       setStep(3);
     } else if (step === 4) {
-      handleBooking();
+      // Validate form before booking
+      if (validateFormAndSetErrors()) {
+        handleBooking();
+      }
     } else if (step === 3) {
       // Before advancing from date/time selection, ensure selected time is actually available.
       const proceed = async () => {
@@ -308,6 +317,36 @@ const Booking = () => {
     }
   };
 
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    return email.includes("@") && email.includes(".");
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^05\d{8}$/; // Starts with 05 and has 10 digits total
+    return phoneRegex.test(phone);
+  };
+
+  const checkFormValid = (): boolean => {
+    return (
+      formData.firstName.trim() &&
+      formData.lastName.trim() &&
+      validateEmail(formData.email) &&
+      validatePhone(formData.phone)
+    );
+  };
+
+  const validateFormAndSetErrors = (): boolean => {
+    const errors = {
+      firstName: !formData.firstName.trim(),
+      lastName: !formData.lastName.trim(),
+      email: !validateEmail(formData.email),
+      phone: !validatePhone(formData.phone),
+    };
+    setFormErrors(errors);
+    return !Object.values(errors).some((error) => error === true);
+  };
+
   const canProceed = () => {
     switch (step) {
       case 1:
@@ -319,12 +358,7 @@ const Booking = () => {
       case 3:
         return !!selectedDate && !!selectedTime;
       case 4:
-        return (
-          formData.firstName &&
-          formData.lastName &&
-          formData.email &&
-          formData.phone
-        );
+        return true; // Always allow, validation happens on click
       default:
         return true;
     }
@@ -826,7 +860,17 @@ const Booking = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, firstName: e.target.value })
                       }
+                      className={
+                        formErrors.firstName ? "border-red-500 border-2" : ""
+                      }
                     />
+                    {formErrors.firstName && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {lang === "ar"
+                          ? "الاسم الأول مطلوب"
+                          : "First name is required"}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -837,7 +881,17 @@ const Booking = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, lastName: e.target.value })
                       }
+                      className={
+                        formErrors.lastName ? "border-red-500 border-2" : ""
+                      }
                     />
+                    {formErrors.lastName && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {lang === "ar"
+                          ? "اسم العائلة مطلوب"
+                          : "Last name is required"}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -849,7 +903,18 @@ const Booking = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
+                      className={
+                        formErrors.email ? "border-red-500 border-2" : ""
+                      }
+                      placeholder="example@mail.com"
                     />
+                    {formErrors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {lang === "ar"
+                          ? "البريد الإلكتروني يجب أن يحتوي على @ و ."
+                          : "Email must contain @ and ."}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -861,7 +926,18 @@ const Booking = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, phone: e.target.value })
                       }
+                      className={
+                        formErrors.phone ? "border-red-500 border-2" : ""
+                      }
+                      placeholder="05xxxxxxxx"
                     />
+                    {formErrors.phone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {lang === "ar"
+                          ? "رقم الهاتف يجب أن يبدأ بـ 05 ويحتوي على 10 أرقام"
+                          : "Phone must start with 05 and have 10 digits"}
+                      </p>
+                    )}
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-2">
@@ -894,7 +970,7 @@ const Booking = () => {
                   selectedDoctor,
                   clinics,
                   doctors,
-                })}
+                }) || null}
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                   <Check className="w-10 h-10 text-primary" />
                 </div>
@@ -1002,7 +1078,7 @@ const Booking = () => {
               <Button
                 variant="hero"
                 onClick={nextStep}
-                disabled={!canProceed()}
+                disabled={step < 4 && !canProceed()}
               >
                 {step === 4 ? t("booking.confirm") : t("booking.next")}
                 {isRTL ? (
