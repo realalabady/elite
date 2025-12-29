@@ -151,11 +151,8 @@ const Booking = () => {
     const doctorParam = searchParams.get("doctor");
     const serviceParam = searchParams.get("service");
 
-    // Only update state if values actually changed (prevent unnecessary re-fetches)
-    if (
-      clinicParam &&
-      (!selectedClinic || selectedClinic.toString() !== clinicParam)
-    ) {
+    // Only populate initial state from URL when local state is empty
+    if (clinicParam && !selectedClinic) {
       const clinicExists = clinics.some((c) => c.id.toString() === clinicParam);
       if (clinicExists) {
         setSelectedClinic(parseInt(clinicParam));
@@ -163,22 +160,16 @@ const Booking = () => {
         loadDoctors(clinicParam);
       }
     }
-    if (
-      doctorParam &&
-      (!selectedDoctor || selectedDoctor.toString() !== doctorParam)
-    ) {
+    if (doctorParam && !selectedDoctor) {
       const doc = doctors.find((d) => d.id.toString() === doctorParam);
       if (doc) {
         setSelectedClinic(doc.clinicId);
         setSelectedDoctor(parseInt(doctorParam));
-        setStep(serviceParam ? 2.5 : 3);
+        setStep(3);
         loadServices(doctorParam);
       }
     }
-    if (
-      serviceParam &&
-      (!selectedService || selectedService.toString() !== serviceParam)
-    ) {
+    if (serviceParam && !selectedService) {
       setSelectedService(parseInt(serviceParam));
       setStep(3);
     }
@@ -255,7 +246,6 @@ const Booking = () => {
     () => [
       { num: 1, label: t("booking.step1"), icon: Building2 },
       { num: 2, label: t("booking.step2"), icon: User },
-      { num: 2.5, label: t("Select Service"), icon: User },
       { num: 3, label: t("booking.step3"), icon: Calendar },
       { num: 4, label: t("booking.step4"), icon: Clock },
       { num: 5, label: t("booking.step5"), icon: Check },
@@ -263,7 +253,7 @@ const Booking = () => {
     [t]
   );
 
-  const nextStep = () => {
+  const nextStep = async () => {
     console.log("[Booking] nextStep called", {
       step,
       selectedClinic,
@@ -277,16 +267,21 @@ const Booking = () => {
       setSearchParams({ clinic: selectedClinic.toString() });
       setStep(2);
     } else if (step === 2 && selectedDoctor) {
+      // Ensure services are loaded and auto-select the first service if none selected,
+      // then proceed to date selection (step 3)
+      let svcId = selectedService;
+      if (!services || services.length === 0) {
+        const data = await loadServices(selectedDoctor.toString());
+        if (Array.isArray(data) && data.length > 0) svcId = data[0].id;
+      } else if (!svcId && services.length > 0) {
+        svcId = services[0].id;
+      }
+
+      if (svcId) setSelectedService(svcId);
       setSearchParams({
         clinic: selectedClinic?.toString(),
         doctor: selectedDoctor.toString(),
-      });
-      setStep(2.5);
-    } else if (step === 2.5 && selectedService) {
-      setSearchParams({
-        clinic: selectedClinic?.toString(),
-        doctor: selectedDoctor?.toString(),
-        service: selectedService.toString(),
+        service: svcId ? svcId.toString() : "",
       });
       setStep(3);
     } else if (step === 4) {
@@ -349,11 +344,7 @@ const Booking = () => {
     }
   };
   const prevStep = () => {
-    if (step === 2.5) {
-      setStep(2);
-    } else {
-      setStep((s) => Math.max(s - 1, 1));
-    }
+    setStep((s) => Math.max(s - 1, 1));
   };
 
   // Validation functions
@@ -392,8 +383,6 @@ const Booking = () => {
         return !!selectedClinic;
       case 2:
         return !!selectedDoctor;
-      case 2.5:
-        return !!selectedService;
       case 3:
         return !!selectedDate && !!selectedTime;
       case 4:
@@ -434,7 +423,12 @@ const Booking = () => {
 
   // Handle clinic selection
   const handleClinicSelect = (clinicId: number) => {
+    // If changing clinic, clear downstream selections so user re-selects doctor/service
     setSelectedClinic(clinicId);
+    setSelectedDoctor(null);
+    setSelectedService(null);
+    setSelectedDate("");
+    setSelectedTime("");
   };
 
   // API functions
@@ -783,43 +777,7 @@ const Booking = () => {
               </motion.div>
             )}
 
-            {/* Step 2.5: Select Service */}
-            {step === 2.5 && (
-              <motion.div
-                key="step2.5"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <h2 className="font-display text-2xl font-bold mb-6">
-                  {t("Select Service")}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {services.map((service) => (
-                    <button
-                      key={service.id}
-                      onClick={() => setSelectedService(service.id)}
-                      className={cn(
-                        "p-4 rounded-xl border-2 text-left transition-all",
-                        selectedService === service.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <h3 className="font-semibold text-foreground mb-1">
-                        {service.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {service.description || "Medical service"}
-                      </p>
-                      <p className="text-sm font-medium text-primary mt-2">
-                        {service.price} {lang === "ar" ? "ريال" : "SAR"}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            {/* Services are now selected automatically when advancing from Doctor step; explicit service step removed */}
 
             {/* Step 3: Select Date & Time */}
             {step === 3 && (
@@ -1058,12 +1016,7 @@ const Booking = () => {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        {t("booking.selectService")}:
-                      </span>
-                      <span className="font-medium">
-                        {services.find((s) => s.id === selectedService)?.name}
-                      </span>
+                      {/* Service row removed per UX change */}
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">

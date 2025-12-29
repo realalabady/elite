@@ -1,20 +1,69 @@
 {
   "clinics": [
     {
-      "id": "1",
-      "name": "Elite Medical Center"
+      "id": 1,
+      "name": "Orthopedic Surgery",
+      "description": "Comprehensive orthopedic care including joint replacement, fracture treatment, and sports medicine."
     },
     {
-      "id": "2",
-      "name": "Downtown Health Clinic"
+      "id": 2,
+      "name": "Spine Clinic",
+      "description": "Specialized treatment for back pain, herniated discs, and spinal deformities."
     },
     {
-      "id": "3",
-      "name": "Sunrise Family Practice"
+      "id": 3,
+      "name": "Sports Medicine",
+      "description": "Treatment and prevention of sports-related injuries for athletes of all levels."
     },
     {
-      "id": "4",
-      "name": "CityCare Hospital"
+      "id": 4,
+      "name": "Obstetrics & Gynecology",
+      "description": "Complete women's health services including pregnancy care and gynecological treatments."
+    },
+    {
+      "id": 5,
+      "name": "General & Bariatric Surgery",
+      "description": "Advanced surgical procedures including laparoscopic and weight loss surgeries."
+    },
+    {
+      "id": 6,
+      "name": "Ophthalmology & LASIK",
+      "description": "Complete eye care from routine exams to advanced laser vision correction."
+    },
+    {
+      "id": 7,
+      "name": "Dental Clinic",
+      "description": "Comprehensive dental services from preventive care to cosmetic dentistry."
+    },
+    {
+      "id": 8,
+      "name": "Dermatology & Laser",
+      "description": "Skin care treatments including laser therapy, cosmetic procedures, and medical dermatology."
+    },
+    {
+      "id": 9,
+      "name": "Internal Medicine & Diabetes",
+      "description": "Management of chronic conditions including diabetes, hypertension, and endocrine disorders."
+    },
+    {
+      "id": 10,
+      "name": "Pediatrics",
+      "description": "Complete healthcare for children from newborns to adolescents."
+    },
+    {
+      "id": 11,
+      "name": "ENT (Ear, Nose & Throat)",
+      "description": "Treatment of ear, nose, and throat conditions including hearing loss and sinus problems."
+    },
+    {
+      "id": 12,
+      "name": "Gastroenterology",
+      "description": "Diagnosis and treatment of digestive system disorders."
+    },
+    {
+      "id": 13,
+      "name": "Urology & Andrology",
+      "description": "Comprehensive urological care including kidney stones, prostate conditions, and men's health."
     }
   ],
   "services": [
@@ -41,67 +90,60 @@
   ],
   "doctors": [
     {
-      "id": "1",
-      "name": "Dr. Sarah Johnson",
+      "id": 1,
+      "name": "Dr. Ahmed Hassan",
       "clinicId": 1,
-      "specialty": "General Medicine",
-      "experience": 8
-    },
-    {
-      "id": "2",
-      "name": "Dr. Michael Chen",
-      "clinicId": 1,
-      "specialty": "Cardiology",
-      "experience": 12
-    },
-    {
-      "id": "3",
-      "name": "Dr. Emily Davis",
-      "clinicId": 2,
-      "specialty": "Pediatrics",
-      "experience": 6
-    },
-    {
-      "id": "4",
-      "name": "Dr. David Wilson",
-      "clinicId": 3,
-      "specialty": "Dermatology",
-      "experience": 10
-    },
-    {
-      "id": "5",
-      "name": "Dr. Lisa Rodriguez",
-      "clinicId": 2,
-      "specialty": "Internal Medicine",
-      "experience": 9
-    },
-    {
-      "id": "6",
-      "name": "Dr. James Thompson",
-      "clinicId": 3,
-      "specialty": "Orthopedics",
+      "specialty": "Orthopedic Surgery",
       "experience": 15
     },
     {
-      "id": "7",
-      "name": "Dr. Maria Garcia",
+      "id": 2,
+      "name": "Dr. Sarah Malik",
       "clinicId": 4,
-      "specialty": "Neurology",
-      "experience": 11
+      "specialty": "Obstetrics & Gynecology",
+      "experience": 12
     },
     {
-      "id": "8",
-      "name": "Dr. Robert Lee",
-      "clinicId": 4,
-      "specialty": "Surgery",
+      "id": 3,
+      "name": "Dr. Mohammed Ali",
+      "clinicId": 5,
+      "specialty": "General & Bariatric Surgery",
+      "experience": 18
+    },
+    {
+      "id": 4,
+      "name": "Dr. Fatima Omar",
+      "clinicId": 6,
+      "specialty": "Ophthalmology & LASIK",
       "experience": 14
     },
     {
-      "id": "9",
-      "name": "Dr. Jennifer Brown",
-      "clinicId": 4,
-      "specialty": "Gynecology",
-      "experience": 7
+      "id": 5,
+      "name": "Dr. Khalid Nasser",
+      "clinicId": 2,
+      "specialty": "Spine Surgery",
+      "experience": 16
+    },
+    {
+      "id": 6,
+      "name": "Dr. Layla Ahmed",
+      "clinicId": 8,
+      "specialty": "Dermatology & Laser",
+      "experience": 10
+    },
+    {
+      "id": 7,
+      "name": "Dr. Omar Hassan",
+      "clinicId": 9,
+      "specialty": "Internal Medicine & Diabetes",
+      "experience": 13
+    },
+    {
+      "id": 8,
+      "name": "Dr. Noura Salem",
+      "clinicId": 10,
+      "specialty": "Pediatrics",
+      "experience": 11
     }
   ],
   "doctorServices": [
@@ -532,240 +574,26 @@
   ],
   "appointments": [
     {
-      "id": "1",
-      "doctorId": 1,
-      "clinicId": 1,
-      "serviceId": 1,
-      "date": "2024-12-21T00:00:00.000Z",
-      "startTime": "10:00"
-    },
-    {
-      "id": "2",
-      "doctorId": 2,
-      "clinicId": 1,
-      "serviceId": 2,
-      "date": "2024-12-21T00:00:00.000Z",
-      "startTime": "14:00"
-    },
-    {
-      "id": "4f1d",
-      "clinicId": "",
-      "doctorId": "",
+      "clinicId": "1",
+      "doctorId": "1",
       "serviceId": "1",
-      "date": "2025-12-31",
-      "startTime": "17:00",
-      "patientName": "ahmed ali",
-      "patientEmail": "fakelabady@gmail.com",
-      "patientPhone": "055"
-    },
-    {
-      "clinicId": "",
-      "doctorId": "",
-      "serviceId": "2",
       "date": "2025-12-30",
-      "startTime": "10:30",
-      "patientName": "vvv v",
-      "patientEmail": "v",
-      "patientPhone": "v",
-      "id": "6-HbZBK"
-    },
-    {
-      "startTime": "10:00",
-      "patientEmail": "john@example.com",
-      "clinicId": "1",
-      "patientName": "John Doe",
-      "serviceId": "1",
-      "patientPhone": "123-456-7890",
-      "doctorId": "1",
-      "date": "2025-12-29",
-      "id": "fKv8Rj1"
-    },
-    {
-      "startTime": "10:00",
-      "patientEmail": "john@example.com",
-      "clinicId": "1",
-      "patientName": "John Doe",
-      "serviceId": "1",
-      "patientPhone": "123-456-7890",
-      "doctorId": "1",
-      "date": "2025-12-29",
-      "id": "6gU990D"
-    },
-    {
-      "doctorId": "1",
-      "clinicId": "1",
-      "serviceId": "1",
-      "date": "2025-12-29",
-      "startTime": "10:00",
-      "patientName": "Jane Smith",
-      "patientEmail": "jane@example.com",
-      "patientPhone": "987-654-3210",
-      "id": "ZKAAPO8"
-    },
-    {
-      "doctorId": "1",
-      "clinicId": "1",
-      "serviceId": "1",
-      "date": "2025-12-29",
-      "startTime": "10:00",
-      "patientName": "Jane Smith",
-      "patientEmail": "jane@example.com",
-      "patientPhone": "987-654-3210",
-      "id": "k-5jBVd"
-    },
-    {
-      "doctorId": "1",
-      "clinicId": "1",
-      "serviceId": "1",
-      "date": "2025-12-29",
-      "startTime": "10:00",
-      "patientName": "Jane Smith",
-      "patientEmail": "jane@example.com",
-      "patientPhone": "987-654-3210",
-      "id": "9HlFOlq"
-    },
-    {
-      "clinicId": "",
-      "doctorId": "",
-      "serviceId": "2",
-      "date": "2026-01-01",
       "startTime": "09:00",
-      "patientName": "ahmed first",
-      "patientEmail": "fake",
-      "patientPhone": "55",
-      "id": "I_xo5Yv"
-    },
-    {
-      "clinicId": "2",
-      "doctorId": "3",
-      "serviceId": "2",
-      "date": "2026-01-06",
-      "startTime": "12:00",
-      "patientName": "ahmed mahmoud",
-      "patientEmail": "fake",
-      "patientPhone": "037435",
-      "id": "MRoXBar"
-    },
-    {
-      "clinicId": "2",
-      "doctorId": "3",
-      "serviceId": "2",
-      "date": "2026-01-05",
-      "startTime": "10:30",
-      "patientName": "ahmed again  gg",
-      "patientEmail": "gg4",
-      "patientPhone": "4",
-      "id": "8xvv6xn"
-    },
-    {
-      "clinicId": "4",
-      "doctorId": "9",
-      "serviceId": "3",
-      "date": "2026-01-05",
-      "startTime": "15:30",
       "patientName": "gg gg",
-      "patientEmail": "4",
-      "patientPhone": "e",
-      "id": "sXFukhI"
+      "patientEmail": "fak@cd.com",
+      "patientPhone": "0534955842",
+      "id": 1
     },
     {
       "clinicId": "1",
       "doctorId": "1",
-      "serviceId": "2",
-      "date": "2026-01-05",
-      "startTime": "16:00",
-      "patientName": "f ffffff",
-      "patientEmail": "f",
-      "patientPhone": "f",
-      "id": "GR6f0VC"
-    },
-    {
-      "clinicId": "1",
-      "doctorId": "2",
-      "serviceId": "2",
-      "date": "2026-01-06",
-      "startTime": "16:30",
-      "patientName": "AHMED ALI ",
-      "patientEmail": "FAKE",
-      "patientPhone": "4242",
-      "id": "Lwv-kvc"
-    },
-    {
-      "clinicId": "1",
-      "doctorId": "2",
       "serviceId": "1",
-      "date": "2026-01-05",
-      "startTime": "12:00",
-      "patientName": "ff ffff",
-      "patientEmail": "f",
-      "patientPhone": "f",
-      "id": "7G3LHgq"
-    },
-    {
-      "clinicId": "1",
-      "doctorId": "2",
-      "serviceId": "1",
-      "date": "2026-01-02",
-      "startTime": "10:00",
-      "patientName": "jkv jkvj",
-      "patientEmail": "kgkj",
-      "patientPhone": "fjh",
-      "id": "042-VaR"
-    },
-    {
-      "clinicId": "3",
-      "doctorId": "6",
-      "serviceId": "1",
-      "date": "2026-01-07",
-      "startTime": "12:00",
-      "patientName": "ahmed gg",
-      "patientEmail": "fake@gmail.com",
-      "patientPhone": "0534955842",
-      "id": "ilupFbf"
-    },
-    {
-      "clinicId": "1",
-      "doctorId": "1",
-      "serviceId": "3",
-      "date": "2026-01-05",
-      "startTime": "10:30",
-      "patientName": "ff e",
-      "patientEmail": "fakealabad@gmail.com",
-      "patientPhone": "0534955842",
-      "id": "599V38p"
-    },
-    {
-      "clinicId": "2",
-      "doctorId": "5",
-      "serviceId": "2",
-      "date": "2026-01-07",
-      "startTime": "11:00",
-      "patientName": "gh fhjf",
-      "patientEmail": "fake@glfnd.csk",
-      "patientPhone": "0534325324",
-      "id": "bqVBzND"
-    },
-    {
-      "clinicId": "4",
-      "doctorId": "7",
-      "serviceId": "3",
-      "date": "2026-01-08",
-      "startTime": "16:30",
-      "patientName": "as da",
-      "patientEmail": "fakealabady@gmail.com",
-      "patientPhone": "0534955842",
-      "id": "vpnpEtE"
-    },
-    {
-      "clinicId": "2",
-      "doctorId": "3",
-      "serviceId": "1",
-      "date": "2026-01-08",
-      "startTime": "10:00",
+      "date": "2025-12-30",
+      "startTime": "09:00",
       "patientName": "gg gg",
-      "patientEmail": "fakealabady@gmail.com",
+      "patientEmail": "fl@w.cp,",
       "patientPhone": "0534955842",
-      "id": "PdfpCF8"
+      "id": 2
     }
   ]
 }
