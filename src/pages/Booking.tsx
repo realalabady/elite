@@ -350,19 +350,13 @@ const Booking = () => {
   }, [lang]);
 
   const selectedClinicData = useMemo(() => {
-    const id =
-      typeof selectedClinic === "string"
-        ? parseInt(selectedClinic, 10)
-        : selectedClinic;
-    return clinics.find((c) => c.id === id);
+    const id = selectedClinic?.toString();
+    return clinics.find((c) => c.id.toString() === id);
   }, [clinics, selectedClinic]);
 
   const selectedDoctorData = useMemo(() => {
-    const id =
-      typeof selectedDoctor === "string"
-        ? parseInt(selectedDoctor, 10)
-        : selectedDoctor;
-    return doctors.find((d) => d.id === id);
+    const id = selectedDoctor?.toString();
+    return doctors.find((d) => d.id.toString() === id);
   }, [doctors, selectedDoctor]);
 
   // Handle clinic selection
@@ -893,6 +887,14 @@ const Booking = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center"
               >
+                {console.log("[Booking] Step 5 rendering with:", {
+                  selectedClinicData,
+                  selectedDoctorData,
+                  selectedClinic,
+                  selectedDoctor,
+                  clinics,
+                  doctors,
+                })}
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                   <Check className="w-10 h-10 text-primary" />
                 </div>
