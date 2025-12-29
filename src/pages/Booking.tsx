@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import Cookies from "js-cookie";
 import {
   Check,
   ChevronRight,
@@ -105,6 +106,43 @@ const Booking = () => {
     loadClinics();
   }, []);
 
+  // Load booking state from cookies on mount
+  useEffect(() => {
+    const clinicCookie = Cookies.get("booking_clinic");
+    const doctorCookie = Cookies.get("booking_doctor");
+    const serviceCookie = Cookies.get("booking_service");
+    const dateCookie = Cookies.get("booking_date");
+    const timeCookie = Cookies.get("booking_time");
+    const stepCookie = Cookies.get("booking_step");
+
+    if (clinicCookie) setSelectedClinic(parseInt(clinicCookie));
+    if (doctorCookie) setSelectedDoctor(parseInt(doctorCookie));
+    if (serviceCookie) setSelectedService(parseInt(serviceCookie));
+    if (dateCookie) setSelectedDate(dateCookie);
+    if (timeCookie) setSelectedTime(timeCookie);
+    if (stepCookie) setStep(parseInt(stepCookie));
+  }, []);
+
+  // Save booking state to cookies whenever it changes
+  useEffect(() => {
+    if (selectedClinic)
+      Cookies.set("booking_clinic", selectedClinic.toString());
+    if (selectedDoctor)
+      Cookies.set("booking_doctor", selectedDoctor.toString());
+    if (selectedService)
+      Cookies.set("booking_service", selectedService.toString());
+    if (selectedDate) Cookies.set("booking_date", selectedDate);
+    if (selectedTime) Cookies.set("booking_time", selectedTime);
+    Cookies.set("booking_step", step.toString());
+  }, [
+    selectedClinic,
+    selectedDoctor,
+    selectedService,
+    selectedDate,
+    selectedTime,
+    step,
+  ]);
+
   // Handle URL parameters - only run after clinics are loaded
   useEffect(() => {
     if (clinics.length === 0) return; // Wait for clinics to load
@@ -118,10 +156,9 @@ const Booking = () => {
       clinicParam &&
       (!selectedClinic || selectedClinic.toString() !== clinicParam)
     ) {
-      const clinicId = parseInt(clinicParam);
-      const clinicExists = clinics.some((c) => c.id === clinicId);
+      const clinicExists = clinics.some((c) => c.id.toString() === clinicParam);
       if (clinicExists) {
-        setSelectedClinic(clinicId);
+        setSelectedClinic(parseInt(clinicParam));
         setStep(2);
         loadDoctors(clinicParam);
       }
@@ -130,7 +167,7 @@ const Booking = () => {
       doctorParam &&
       (!selectedDoctor || selectedDoctor.toString() !== doctorParam)
     ) {
-      const doc = doctors.find((d) => d.id === parseInt(doctorParam));
+      const doc = doctors.find((d) => d.id.toString() === doctorParam);
       if (doc) {
         setSelectedClinic(doc.clinicId);
         setSelectedDoctor(parseInt(doctorParam));
@@ -207,7 +244,9 @@ const Booking = () => {
   const filteredDoctors = useMemo(
     () =>
       selectedClinic
-        ? doctors.filter((d) => d.clinicId === parseInt(selectedClinic))
+        ? doctors.filter(
+            (d) => d.clinicId === parseInt(selectedClinic.toString())
+          )
         : doctors,
     [doctors, selectedClinic]
   );
@@ -216,7 +255,7 @@ const Booking = () => {
     () => [
       { num: 1, label: t("booking.step1"), icon: Building2 },
       { num: 2, label: t("booking.step2"), icon: User },
-      { num: 2.5, label: t("booking.selectService"), icon: User },
+      { num: 2.5, label: t("Select Service"), icon: User },
       { num: 3, label: t("booking.step3"), icon: Calendar },
       { num: 4, label: t("booking.step4"), icon: Clock },
       { num: 5, label: t("booking.step5"), icon: Check },
@@ -518,6 +557,15 @@ const Booking = () => {
     }
   };
 
+  const clearBookingCookies = () => {
+    Cookies.remove("booking_clinic");
+    Cookies.remove("booking_doctor");
+    Cookies.remove("booking_service");
+    Cookies.remove("booking_date");
+    Cookies.remove("booking_time");
+    Cookies.remove("booking_step");
+  };
+
   return (
     <Layout>
       {/* Hero */}
@@ -564,7 +612,14 @@ const Booking = () => {
                         : "bg-muted"
                     )}
                   >
-                    {step > s.num ? <Check className="w-4 h-4" /> : s.num}
+                    {step > s.num ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      (() => {
+                        const Icon = s.icon as any;
+                        return <Icon className="w-4 h-4" />;
+                      })()
+                    )}
                   </div>
                   <span className="hidden md:block text-sm font-medium">
                     {s.label}
@@ -573,7 +628,7 @@ const Booking = () => {
                 {idx < steps.length - 1 && (
                   <div
                     className={cn(
-                      "w-8 h-0.5 mx-2",
+                      "hidden md:block w-8 h-0.5 mx-2",
                       step > s.num ? "bg-primary" : "bg-border"
                     )}
                   />
@@ -737,7 +792,7 @@ const Booking = () => {
                 exit={{ opacity: 0, x: -20 }}
               >
                 <h2 className="font-display text-2xl font-bold mb-6">
-                  {t("booking.selectService")}
+                  {t("Select Service")}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {services.map((service) => (
@@ -1050,8 +1105,9 @@ const Booking = () => {
                       phone: "",
                       notes: "",
                     });
-                    // Clear URL params so they don't re-populate the form
+                    // Clear URL params and cookies
                     setSearchParams({});
+                    clearBookingCookies();
                   }}
                 >
                   {t("booking.bookAnother")}
