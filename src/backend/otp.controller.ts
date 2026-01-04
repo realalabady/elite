@@ -3,20 +3,26 @@ import { TwilioService } from "./twilio.service";
 
 @Controller("otp")
 export class OtpController {
-  constructor(private twilioService: TwilioService) {}
+  constructor(private readonly twilioService: TwilioService) {}
+
+  /**
+   * Fallback guard in case DI fails unexpectedly (ensures sendOTP is available).
+   */
+  private get service(): TwilioService {
+    if (!this.twilioService) {
+      // Instantiating directly as a safety net; should not happen in normal DI flows.
+      return new TwilioService();
+    }
+    return this.twilioService;
+  }
 
   @Post("send")
   async sendOTP(@Body() body: { phoneNumber: string }) {
-    const result = await this.twilioService.sendOTP(body.phoneNumber);
-    return result;
+    return await this.service.sendOTP(body.phoneNumber);
   }
 
   @Post("verify")
   async verifyOTP(@Body() body: { phoneNumber: string; code: string }) {
-    const result = await this.twilioService.verifyOTP(
-      body.phoneNumber,
-      body.code
-    );
-    return result;
+    return await this.service.verifyOTP(body.phoneNumber, body.code);
   }
 }

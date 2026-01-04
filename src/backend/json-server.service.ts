@@ -5,7 +5,7 @@ import axios, { AxiosInstance } from "axios";
 export class JsonServerService implements OnModuleInit {
   private client: AxiosInstance;
   private readonly baseURL =
-    process.env.JSON_SERVER_URL || "http://localhost:3002";
+    process.env.JSON_SERVER_URL || "http://localhost:3003";
 
   constructor() {
     // Initialize client immediately

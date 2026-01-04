@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,8 +24,6 @@ import { useToast } from "@/hooks/use-toast";
 import { bookingApi, Clinic, Doctor, Service } from "@/services/api";
 import { BookingStep } from "@/types/booking";
 import { cn } from "@/lib/utils";
-import { auth, RecaptchaVerifier } from "@/lib/firebase";
-import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 
 const timeSlots = [
   "09:00",
@@ -83,7 +81,7 @@ const Booking = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState("");
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Data state
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -114,6 +112,23 @@ const Booking = () => {
   useEffect(() => {
     loadClinics();
   }, []);
+
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // Load booking state from cookies on mount
   useEffect(() => {
@@ -411,75 +426,32 @@ const Booking = () => {
       case 4:
         return true; // Always allow, validation happens on click
       case 5:
-        return otp.length === 6; // OTP must be 6 digits
+        return otp.length === 5; // OTP must be 5 digits
       default:
         return true;
     }
   };
 
-  // Initialize reCAPTCHA verifier on mount
-  useEffect(() => {
-    const initRecaptcha = () => {
-      if ((window as any).recaptchaVerifier) {
-        return;
-      }
-
-      if (!recaptchaContainerRef.current) {
-        return;
-      }
-
-      try {
-        (window as any).recaptchaVerifier = new RecaptchaVerifier(
-          auth,
-          recaptchaContainerRef.current,
-          {
-            size: "invisible",
-            callback: () => {
-              console.log("reCAPTCHA solved");
-            },
-            "error-callback": (error: any) => {
-              console.error("reCAPTCHA error:", error);
-            },
-          }
-        );
-      } catch (error) {
-        console.error("Error initializing reCAPTCHA:", error);
-      }
-    };
-
-    const timer = setTimeout(initRecaptcha, 100);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, []);
-
-  // Send OTP via Firebase
+  // Send OTP via Twilio backend
   const sendOTP = async () => {
     try {
-      const appVerifier = (window as any).recaptchaVerifier;
+      const apiBaseUrl =
+        import.meta.env.VITE_API_URL?.toString() || "http://localhost:3002";
 
-      if (!appVerifier) {
-        throw new Error(
-          "reCAPTCHA verifier not initialized. Refresh the page."
-        );
+      const response = await fetch(`${apiBaseUrl}/otp/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber: formData.phone }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to send OTP");
       }
 
-      let phoneNumber = formData.phone.trim();
-      if (phoneNumber.startsWith("0")) {
-        phoneNumber = "+966" + phoneNumber.substring(1);
-      } else if (!phoneNumber.startsWith("+")) {
-        phoneNumber = "+966" + phoneNumber;
-      }
-
-      const confirmationResult = await signInWithPhoneNumber(
-        auth,
-        phoneNumber,
-        appVerifier
-      );
-
-      (window as any).confirmationResult = confirmationResult;
       setOtpSent(true);
+      setResendCooldown(60); // 60s cooldown before resend
 
       toast({
         title: lang === "ar" ? "تم إرسال رمز التحقق" : "OTP Sent",
@@ -498,14 +470,8 @@ const Booking = () => {
           ? "فشل إرسال رمز التحقق"
           : "Failed to send verification code";
 
-      if (error.code === "auth/invalid-phone-number") {
-        errorMessage =
-          lang === "ar" ? "رقم الهاتف غير صالح" : "Invalid phone number";
-      } else if (error.code === "auth/too-many-requests") {
-        errorMessage =
-          lang === "ar"
-            ? "تم إرسال الكثير من الرسائل. حاول مرة أخرى لاحقًا"
-            : "Too many requests. Please try again later";
+      if (error?.message) {
+        errorMessage = error.message;
       }
 
       toast({
@@ -514,29 +480,32 @@ const Booking = () => {
         variant: "destructive",
       });
 
-      // Reset reCAPTCHA for retry
-      (window as any).recaptchaVerifier?.clear();
-      (window as any).recaptchaVerifier = null;
-
       return false;
     }
   };
 
-  // Verify OTP with Firebase
+  // Verify OTP via Twilio backend
   const verifyOTP = async (): Promise<boolean> => {
     try {
-      const confirmationResult = (window as any).confirmationResult;
+      const apiBaseUrl =
+        import.meta.env.VITE_API_URL?.toString() || "http://localhost:3002";
 
-      if (!confirmationResult) {
-        setOtpError(
-          lang === "ar"
-            ? "لم يتم إرسال رمز التحقق"
-            : "Verification code not sent"
-        );
-        return false;
+      const response = await fetch(`${apiBaseUrl}/otp/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber: formData.phone, code: otp }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to verify OTP");
       }
 
-      await confirmationResult.confirm(otp);
+      if (!data?.verified) {
+        setOtpError(lang === "ar" ? "رمز التحقق غير صحيح" : "Invalid OTP");
+        return false;
+      }
 
       setOtpError("");
       toast({
@@ -553,14 +522,8 @@ const Booking = () => {
       let errorMessage =
         lang === "ar" ? "رمز التحقق غير صحيح" : "Invalid verification code";
 
-      if (error.code === "auth/invalid-verification-code") {
-        errorMessage =
-          lang === "ar" ? "رمز التحقق غير صحيح" : "Invalid verification code";
-      } else if (error.code === "auth/code-expired") {
-        errorMessage =
-          lang === "ar"
-            ? "انتهت صلاحية رمز التحقق"
-            : "Verification code expired";
+      if (error?.message) {
+        errorMessage = error.message;
       }
 
       setOtpError(errorMessage);
@@ -1299,8 +1262,8 @@ const Booking = () => {
                 </h2>
                 <p className="text-muted-foreground text-center mb-6">
                   {lang === "ar"
-                    ? `تم إرسال رمز التحقق المكون من 6 أرقام إلى ${formData.phone}`
-                    : `A 6-digit verification code has been sent to ${formData.phone}`}
+                    ? `تم إرسال رمز التحقق المكون من 5 أرقام إلى ${formData.phone}`
+                    : `A 5-digit verification code has been sent to ${formData.phone}`}
                 </p>
 
                 <div className="bg-card rounded-xl p-6 shadow-card">
@@ -1312,14 +1275,14 @@ const Booking = () => {
                   <Input
                     type="text"
                     inputMode="numeric"
-                    maxLength={6}
+                    maxLength={5}
                     value={otp}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, "");
                       setOtp(value);
                       setOtpError("");
                     }}
-                    placeholder="000000"
+                    placeholder="00000"
                     className={`text-center text-2xl tracking-widest ${
                       otpError ? "border-red-500 border-2" : ""
                     }`}
@@ -1332,10 +1295,24 @@ const Booking = () => {
 
                   <button
                     onClick={sendOTP}
-                    className="w-full mt-4 text-sm text-primary hover:underline"
+                    disabled={resendCooldown > 0}
+                    className="w-full mt-4 text-sm text-primary hover:underline disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {lang === "ar" ? "إعادة إرسال الرمز" : "Resend Code"}
+                    {resendCooldown > 0
+                      ? lang === "ar"
+                        ? `إعادة الإرسال خلال ${resendCooldown}ث`
+                        : `Resend in ${resendCooldown}s`
+                      : lang === "ar"
+                      ? "إعادة إرسال الرمز"
+                      : "Resend Code"}
                   </button>
+                  {resendCooldown > 0 && (
+                    <p className="text-center text-xs text-muted-foreground mt-2">
+                      {lang === "ar"
+                        ? `يمكنك طلب رمز جديد بعد ${resendCooldown} ثانية`
+                        : `You can request a new code in ${resendCooldown}s`}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -1423,6 +1400,10 @@ const Booking = () => {
                     setSelectedService(null);
                     setSelectedDate("");
                     setSelectedTime("");
+                    setOtp("");
+                    setOtpSent(false);
+                    setOtpError("");
+                    setResendCooldown(0);
                     setFormData({
                       firstName: "",
                       lastName: "",
@@ -1461,7 +1442,7 @@ const Booking = () => {
                 onClick={nextStep}
                 disabled={
                   (step < 4 && !canProceed()) ||
-                  (step === 5 && otp.length !== 6)
+                  (step === 5 && otp.length !== 5)
                 }
               >
                 {step === 4
@@ -1483,9 +1464,6 @@ const Booking = () => {
           )}
         </div>
       </section>
-
-      {/* Hidden reCAPTCHA container for Firebase Phone Auth */}
-      <div ref={recaptchaContainerRef} id="recaptcha-container"></div>
     </Layout>
   );
 };

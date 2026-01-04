@@ -3,7 +3,7 @@ import axios from "axios";
 // Create axios instance with base configuration
 const api = axios.create({
   // Backend uses a global prefix `/api` (set in backend `main.ts`)
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3002",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3003",
   headers: {
     "Content-Type": "application/json",
   },
