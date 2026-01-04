@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,9 +21,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FadeIn } from "@/components/animations/FadeIn";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
-import { bookingApi, Clinic, Doctor, Service, TimeSlot } from "@/services/api";
+import { bookingApi, Clinic, Doctor, Service } from "@/services/api";
 import { BookingStep } from "@/types/booking";
 import { cn } from "@/lib/utils";
+import { auth, RecaptchaVerifier } from "@/lib/firebase";
+import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 
 const timeSlots = [
   "09:00",
@@ -78,12 +80,19 @@ const Booking = () => {
     email: false,
     phone: false,
   });
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
   // Data state
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  // Normalize slots to an array of time strings (e.g. "10:30").
+  // The backend may return either an array of strings or objects; normalize
+  // here so the rest of the UI can rely on a consistent `string[]` shape.
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   // Loading and error states
   const [loading, setLoading] = useState({
@@ -248,9 +257,14 @@ const Booking = () => {
       { num: 2, label: t("booking.step2"), icon: User },
       { num: 3, label: t("booking.step3"), icon: Calendar },
       { num: 4, label: t("booking.step4"), icon: Clock },
-      { num: 5, label: t("booking.step5"), icon: Check },
+      {
+        num: 5,
+        label: lang === "ar" ? "التحقق من OTP" : "OTP Verification",
+        icon: Check,
+      },
+      { num: 6, label: t("booking.step5"), icon: Check },
     ],
-    [t]
+    [t, lang]
   );
 
   const nextStep = async () => {
@@ -285,8 +299,17 @@ const Booking = () => {
       });
       setStep(3);
     } else if (step === 4) {
-      // Validate form before booking
+      // Validate form and send OTP before booking
       if (validateFormAndSetErrors()) {
+        const sent = await sendOTP();
+        if (sent) {
+          setStep(5); // Move to OTP verification step
+        }
+      }
+    } else if (step === 5) {
+      // Verify OTP before booking
+      const verified = await verifyOTP();
+      if (verified) {
         handleBooking();
       }
     } else if (step === 3) {
@@ -362,7 +385,7 @@ const Booking = () => {
       formData.firstName.trim() &&
       formData.lastName.trim() &&
       validateEmail(formData.email) &&
-      validatePhone(formData.phone)
+      formData.phone.trim() // Just check if phone is not empty
     );
   };
 
@@ -371,7 +394,7 @@ const Booking = () => {
       firstName: !formData.firstName.trim(),
       lastName: !formData.lastName.trim(),
       email: !validateEmail(formData.email),
-      phone: !validatePhone(formData.phone),
+      phone: !formData.phone.trim(), // Just check if phone is not empty
     };
     setFormErrors(errors);
     return !Object.values(errors).some((error) => error === true);
@@ -387,8 +410,161 @@ const Booking = () => {
         return !!selectedDate && !!selectedTime;
       case 4:
         return true; // Always allow, validation happens on click
+      case 5:
+        return otp.length === 6; // OTP must be 6 digits
       default:
         return true;
+    }
+  };
+
+  // Initialize reCAPTCHA verifier on mount
+  useEffect(() => {
+    const initRecaptcha = () => {
+      if ((window as any).recaptchaVerifier) {
+        return;
+      }
+
+      if (!recaptchaContainerRef.current) {
+        return;
+      }
+
+      try {
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          recaptchaContainerRef.current,
+          {
+            size: "invisible",
+            callback: () => {
+              console.log("reCAPTCHA solved");
+            },
+            "error-callback": (error: any) => {
+              console.error("reCAPTCHA error:", error);
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error initializing reCAPTCHA:", error);
+      }
+    };
+
+    const timer = setTimeout(initRecaptcha, 100);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
+
+  // Send OTP via Firebase
+  const sendOTP = async () => {
+    try {
+      const appVerifier = (window as any).recaptchaVerifier;
+
+      if (!appVerifier) {
+        throw new Error(
+          "reCAPTCHA verifier not initialized. Refresh the page."
+        );
+      }
+
+      let phoneNumber = formData.phone.trim();
+      if (phoneNumber.startsWith("0")) {
+        phoneNumber = "+966" + phoneNumber.substring(1);
+      } else if (!phoneNumber.startsWith("+")) {
+        phoneNumber = "+966" + phoneNumber;
+      }
+
+      const confirmationResult = await signInWithPhoneNumber(
+        auth,
+        phoneNumber,
+        appVerifier
+      );
+
+      (window as any).confirmationResult = confirmationResult;
+      setOtpSent(true);
+
+      toast({
+        title: lang === "ar" ? "تم إرسال رمز التحقق" : "OTP Sent",
+        description:
+          lang === "ar"
+            ? `تم إرسال رمز التحقق إلى ${formData.phone}`
+            : `Verification code sent to ${formData.phone}`,
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error("Error sending OTP:", error);
+
+      let errorMessage =
+        lang === "ar"
+          ? "فشل إرسال رمز التحقق"
+          : "Failed to send verification code";
+
+      if (error.code === "auth/invalid-phone-number") {
+        errorMessage =
+          lang === "ar" ? "رقم الهاتف غير صالح" : "Invalid phone number";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage =
+          lang === "ar"
+            ? "تم إرسال الكثير من الرسائل. حاول مرة أخرى لاحقًا"
+            : "Too many requests. Please try again later";
+      }
+
+      toast({
+        title: lang === "ar" ? "خطأ" : "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      // Reset reCAPTCHA for retry
+      (window as any).recaptchaVerifier?.clear();
+      (window as any).recaptchaVerifier = null;
+
+      return false;
+    }
+  };
+
+  // Verify OTP with Firebase
+  const verifyOTP = async (): Promise<boolean> => {
+    try {
+      const confirmationResult = (window as any).confirmationResult;
+
+      if (!confirmationResult) {
+        setOtpError(
+          lang === "ar"
+            ? "لم يتم إرسال رمز التحقق"
+            : "Verification code not sent"
+        );
+        return false;
+      }
+
+      await confirmationResult.confirm(otp);
+
+      setOtpError("");
+      toast({
+        title: lang === "ar" ? "تم التحقق" : "Verified",
+        description:
+          lang === "ar"
+            ? "تم التحقق من رقم هاتفك بنجاح"
+            : "Phone number verified successfully",
+      });
+      return true;
+    } catch (error: any) {
+      console.error("Error verifying OTP:", error);
+
+      let errorMessage =
+        lang === "ar" ? "رمز التحقق غير صحيح" : "Invalid verification code";
+
+      if (error.code === "auth/invalid-verification-code") {
+        errorMessage =
+          lang === "ar" ? "رمز التحقق غير صحيح" : "Invalid verification code";
+      } else if (error.code === "auth/code-expired") {
+        errorMessage =
+          lang === "ar"
+            ? "انتهت صلاحية رمز التحقق"
+            : "Verification code expired";
+      }
+
+      setOtpError(errorMessage);
+      return false;
     }
   };
 
@@ -505,8 +681,22 @@ const Booking = () => {
         serviceId,
       });
       console.log("[Booking] getAvailableSlots returned:", data);
-      setAvailableSlots(data);
-      return data;
+
+      // Normalize to string[]: support either [{ time: '10:30', available: true }, '10:30']
+      let slots: string[] = [];
+      if (Array.isArray(data)) {
+        if (data.length > 0 && typeof data[0] === "string") {
+          slots = data as string[];
+        } else {
+          // assume objects with a `time` property
+          slots = (data as any[])
+            .map((s) => (s && s.time ? String(s.time) : null))
+            .filter(Boolean) as string[];
+        }
+      }
+
+      setAvailableSlots(slots);
+      return slots;
     } catch (error) {
       setErrors((prev) => ({ ...prev, slots: error.message }));
       toast({
@@ -523,24 +713,151 @@ const Booking = () => {
   const handleBooking = async () => {
     setLoading((prev) => ({ ...prev, booking: true }));
     setErrors((prev) => ({ ...prev, booking: null }));
+    // Final availability check to avoid double-booking: fetch latest slots
+    // and ensure the selectedTime is still available before creating the
+    // appointment. This reduces race windows where the UI was stale.
+    if (!selectedDoctor || !selectedDate || !selectedService || !selectedTime) {
+      toast({
+        title: "Error",
+        description: "Missing booking details",
+        variant: "destructive",
+      });
+      setLoading((prev) => ({ ...prev, booking: false }));
+      return;
+    }
+
+    try {
+      const latest = await bookingApi.getAvailableSlots({
+        doctorId: selectedDoctor.toString(),
+        date: selectedDate,
+        serviceId: selectedService.toString(),
+      });
+      // Normalize like loadAvailableSlots would
+      let latestSlots: string[] = [];
+      if (Array.isArray(latest)) {
+        if (latest.length > 0 && typeof latest[0] === "string") {
+          latestSlots = latest as string[];
+        } else {
+          latestSlots = (latest as any[])
+            .map((s) => (s && s.time ? String(s.time) : null))
+            .filter(Boolean) as string[];
+        }
+      }
+
+      if (!latestSlots.includes(selectedTime)) {
+        // Slot is no longer available — handle similarly to server conflict
+        toast({
+          title: lang === "ar" ? "الوقت محجوز" : "Time slot unavailable",
+          description:
+            lang === "ar"
+              ? "تم حجز هذه الفترة الزمنية للتو. سنقوم بتحديث الأوقات المتاحة."
+              : "The selected time was just booked by someone else. Refreshing available slots.",
+          variant: "destructive",
+        });
+        // Refresh authoritative slots into UI
+        try {
+          await loadAvailableSlots(
+            selectedDoctor.toString(),
+            selectedDate,
+            selectedService.toString()
+          );
+        } catch (err) {
+          console.warn("Failed to refresh slots after pre-submit check:", err);
+        }
+        // Only clear date/time selection per requirements
+        setSelectedDate("");
+        setSelectedTime("");
+        setStep(3);
+        setLoading((prev) => ({ ...prev, booking: false }));
+        return;
+      }
+    } catch (err) {
+      // If availability check fails, proceed to try booking but warn in console.
+      console.warn("Availability check failed, proceeding to booking:", err);
+    }
     try {
       await bookingApi.createAppointment({
-        clinicId: selectedClinic?.toString() || "",
-        doctorId: selectedDoctor?.toString() || "",
-        serviceId: selectedService?.toString() || "",
+        clinicId: parseInt(selectedClinic?.toString() || "0"),
+        doctorId: parseInt(selectedDoctor?.toString() || "0"),
+        serviceId: parseInt(selectedService?.toString() || "0"),
         date: selectedDate,
         startTime: selectedTime,
         patientName: `${formData.firstName} ${formData.lastName}`,
         patientEmail: formData.email,
         patientPhone: formData.phone,
       });
-      setStep(5);
+      // On success, optimistically remove the booked time from local slots
+      // then refresh authoritative availability from the server so the slot
+      // cannot be immediately re-booked.
+      if (selectedTime) {
+        setAvailableSlots((prev) =>
+          Array.isArray(prev) ? prev.filter((t) => t !== selectedTime) : prev
+        );
+      }
+
+      // Try to refresh slots for the same doctor/date/service to reflect the
+      // new booking on the UI (non-blocking). This prevents the same slot
+      // showing as available if the user navigates back to booking.
+      try {
+        if (selectedDoctor && selectedDate && selectedService) {
+          await loadAvailableSlots(
+            selectedDoctor.toString(),
+            selectedDate,
+            selectedService.toString()
+          );
+        }
+      } catch (err) {
+        // If refresh fails, we still proceed to confirmation but log it.
+        console.warn("Failed to refresh slots after booking:", err);
+      }
+
+      setStep(6);
       toast({
         title: "Success",
         description: "Appointment booked successfully",
       });
     } catch (error) {
-      setErrors((prev) => ({ ...prev, booking: error.message }));
+      // Check for a specific server-side slot conflict and handle it gracefully
+      const apiError = (error as any)?.response?.data;
+      if (apiError && apiError.error === "SLOT_ALREADY_BOOKED") {
+        // Inform the user, refresh the available slots for the attempted date,
+        // then reset only the date/time selection and return the user to date/time step.
+        toast({
+          title: lang === "ar" ? "الوقت محجوز" : "Time slot unavailable",
+          description:
+            lang === "ar"
+              ? "تم حجز هذه الفترة الزمنية للتو. سنقوم بتحديث الأوقات المتاحة."
+              : "The selected time was just booked by someone else. Refreshing available slots.",
+          variant: "destructive",
+        });
+
+        try {
+          // Refresh slots for the date that was attempted (do not change API call)
+          if (selectedDoctor && selectedDate && selectedService) {
+            await loadAvailableSlots(
+              selectedDoctor.toString(),
+              selectedDate,
+              selectedService.toString()
+            );
+          }
+        } catch (err) {
+          // If refreshing fails, still continue to reset selection and inform the user.
+          console.warn("Failed to refresh slots after conflict:", err);
+        }
+
+        // Only clear date/time selection per requirements (do not reset flow)
+        setSelectedDate("");
+        setSelectedTime("");
+        setStep(3);
+        // store an error state for booking so UI can show details if needed
+        setErrors((prev) => ({
+          ...prev,
+          booking: apiError.message || apiError.error,
+        }));
+        return;
+      }
+
+      setErrors((prev) => ({ ...prev, booking: (error as any).message }));
       toast({
         title: "Error",
         description: "Failed to book appointment",
@@ -968,22 +1285,77 @@ const Booking = () => {
               </motion.div>
             )}
 
-            {/* Step 5: Confirmation */}
+            {/* Step 5: OTP Verification */}
             {step === 5 && (
+              <motion.div
+                key="step5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="max-w-md mx-auto"
+              >
+                <h2 className="font-display text-2xl font-bold mb-4 text-center">
+                  {lang === "ar" ? "التحقق من الهاتف" : "Phone Verification"}
+                </h2>
+                <p className="text-muted-foreground text-center mb-6">
+                  {lang === "ar"
+                    ? `تم إرسال رمز التحقق المكون من 6 أرقام إلى ${formData.phone}`
+                    : `A 6-digit verification code has been sent to ${formData.phone}`}
+                </p>
+
+                <div className="bg-card rounded-xl p-6 shadow-card">
+                  <label className="block text-sm font-medium mb-2">
+                    {lang === "ar"
+                      ? "أدخل رمز التحقق"
+                      : "Enter Verification Code"}
+                  </label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      setOtp(value);
+                      setOtpError("");
+                    }}
+                    placeholder="000000"
+                    className={`text-center text-2xl tracking-widest ${
+                      otpError ? "border-red-500 border-2" : ""
+                    }`}
+                  />
+                  {otpError && (
+                    <p className="text-red-500 text-sm mt-2 text-center">
+                      {otpError}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={sendOTP}
+                    className="w-full mt-4 text-sm text-primary hover:underline"
+                  >
+                    {lang === "ar" ? "إعادة إرسال الرمز" : "Resend Code"}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 6: Confirmation */}
+            {step === 6 && (
               <motion.div
                 key="step5"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center"
               >
-                {console.log("[Booking] Step 5 rendering with:", {
+                {/* {console.log("[Booking] Step 5 rendering with:", {
                   selectedClinicData,
                   selectedDoctorData,
                   selectedClinic,
                   selectedDoctor,
                   clinics,
                   doctors,
-                }) || null}
+                }) || null} */}
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                   <Check className="w-10 h-10 text-primary" />
                 </div>
@@ -1070,7 +1442,7 @@ const Booking = () => {
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 5 && (
+          {step < 6 && (
             <div className="flex justify-between mt-8 pt-8 border-t border-border">
               <Button
                 variant="outline"
@@ -1087,9 +1459,20 @@ const Booking = () => {
               <Button
                 variant="hero"
                 onClick={nextStep}
-                disabled={step < 4 && !canProceed()}
+                disabled={
+                  (step < 4 && !canProceed()) ||
+                  (step === 5 && otp.length !== 6)
+                }
               >
-                {step === 4 ? t("booking.confirm") : t("booking.next")}
+                {step === 4
+                  ? lang === "ar"
+                    ? "إرسال رمز التحقق"
+                    : "Send Verification Code"
+                  : step === 5
+                  ? lang === "ar"
+                    ? "تأكيد الحجز"
+                    : "Confirm Booking"
+                  : t("booking.next")}
                 {isRTL ? (
                   <ChevronLeft className="w-4 h-4" />
                 ) : (
@@ -1100,6 +1483,9 @@ const Booking = () => {
           )}
         </div>
       </section>
+
+      {/* Hidden reCAPTCHA container for Firebase Phone Auth */}
+      <div ref={recaptchaContainerRef} id="recaptcha-container"></div>
     </Layout>
   );
 };

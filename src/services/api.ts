@@ -61,9 +61,9 @@ export const bookingApi = {
 
   // Create appointment
   createAppointment: (data: {
-    doctorId: string;
-    clinicId: string;
-    serviceId: string;
+    doctorId: number;
+    clinicId: number;
+    serviceId: number;
     date: string;
     startTime: string;
     patientName: string;
@@ -74,6 +74,22 @@ export const bookingApi = {
   // Get working hours for a doctor
   getWorkingHours: (doctorId: string) =>
     api.get(`/doctors/${doctorId}/working-hours`).then((res) => res.data),
+
+  // Get all appointments
+  getAppointments: () => api.get("/appointments").then((res) => res.data),
+
+  // Update appointment status
+  updateAppointmentStatus: (
+    appointmentId: number,
+    data: {
+      status?: string;
+      notes?: string;
+      date?: string;
+      startTime?: string;
+      archived?: boolean;
+    }
+  ) =>
+    api.patch(`/appointments/${appointmentId}`, data).then((res) => res.data),
 };
 
 export interface Clinic {
@@ -132,4 +148,20 @@ export interface BookingResponse {
     createdAt: string;
   };
   message: string;
+}
+
+export interface Appointment {
+  id: number;
+  clinicId: number;
+  doctorId: number;
+  serviceId: number;
+  date: string;
+  startTime: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhone?: string;
+  status: string;
+  notes?: string;
+  archived?: boolean;
+  createdAt?: string;
 }

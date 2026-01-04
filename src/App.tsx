@@ -12,28 +12,126 @@ import Booking from "./pages/Booking";
 import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import AdminReservations from "./pages/admin/Reservations";
+import StaffReservations from "./pages/staff/Reservations";
+import DoctorAppointments from "./pages/doctor/Appointments";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import PublicRoute from "@/components/PublicRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/clinics" element={<Clinics />} />
-          <Route path="/insurance" element={<Insurance />} />
-          <Route path="/booking" element={<Booking />} />
-          <Route path="/careers" element={<Careers />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <PublicRoute>
+                  <Index />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <PublicRoute>
+                  <About />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/doctors"
+              element={
+                <PublicRoute>
+                  <Doctors />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/clinics"
+              element={
+                <PublicRoute>
+                  <Clinics />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/insurance"
+              element={
+                <PublicRoute>
+                  <Insurance />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/booking"
+              element={
+                <PublicRoute>
+                  <Booking />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/careers"
+              element={
+                <PublicRoute>
+                  <Careers />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <PublicRoute>
+                  <Contact />
+                </PublicRoute>
+              }
+            />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/admin/reservations"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminReservations />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/reservations"
+              element={
+                <ProtectedRoute requiredRole="staff">
+                  <StaffReservations />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor/appointments"
+              element={
+                <ProtectedRoute requiredRole="doctor">
+                  <DoctorAppointments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor/:doctorId/appointments"
+              element={
+                <ProtectedRoute requiredRole="doctor">
+                  <DoctorAppointments />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

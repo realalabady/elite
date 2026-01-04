@@ -1,4 +1,84 @@
 {
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin123",
+      "name": "Admin User",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "staff",
+      "password": "staff123",
+      "name": "Staff Member",
+      "role": "staff"
+    },
+    {
+      "id": 3,
+      "username": "doctor1",
+      "password": "doctor123",
+      "name": "Dr. Ahmed Hassan",
+      "role": "doctor",
+      "doctorId": 1
+    },
+    {
+      "id": 4,
+      "username": "doctor2",
+      "password": "doctor123",
+      "name": "Dr. Sarah Malik",
+      "role": "doctor",
+      "doctorId": 2
+    },
+    {
+      "id": 5,
+      "username": "doctor3",
+      "password": "doctor123",
+      "name": "Dr. Mohammed Ali",
+      "role": "doctor",
+      "doctorId": 3
+    },
+    {
+      "id": 6,
+      "username": "doctor4",
+      "password": "doctor123",
+      "name": "Dr. Fatima Omar",
+      "role": "doctor",
+      "doctorId": 4
+    },
+    {
+      "id": 7,
+      "username": "doctor5",
+      "password": "doctor123",
+      "name": "Dr. Khalid Nasser",
+      "role": "doctor",
+      "doctorId": 5
+    },
+    {
+      "id": 8,
+      "username": "doctor6",
+      "password": "doctor123",
+      "name": "Dr. Layla Ahmed",
+      "role": "doctor",
+      "doctorId": 6
+    },
+    {
+      "id": 9,
+      "username": "doctor7",
+      "password": "doctor123",
+      "name": "Dr. Omar Hassan",
+      "role": "doctor",
+      "doctorId": 7
+    },
+    {
+      "id": 10,
+      "username": "doctor8",
+      "password": "doctor123",
+      "name": "Dr. Noura Salem",
+      "role": "doctor",
+      "doctorId": 8
+    }
+  ],
   "clinics": [
     {
       "id": 1,
@@ -574,26 +654,83 @@
   ],
   "appointments": [
     {
-      "clinicId": "1",
-      "doctorId": "1",
-      "serviceId": "1",
-      "date": "2025-12-30",
-      "startTime": "09:00",
-      "patientName": "gg gg",
-      "patientEmail": "fak@cd.com",
-      "patientPhone": "0534955842",
-      "id": 1
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-09",
+      "startTime": "10:00",
+      "patientName": "s s",
+      "patientEmail": "fakea@fw.cac",
+      "patientPhone": "0543219876",
+      "id": 1,
+      "status": "cancelled",
+      "notes": "he want it to cancel it",
+      "archived": false
     },
     {
-      "clinicId": "1",
-      "doctorId": "1",
-      "serviceId": "1",
-      "date": "2025-12-30",
-      "startTime": "09:00",
-      "patientName": "gg gg",
-      "patientEmail": "fl@w.cp,",
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-08",
+      "startTime": "10:00",
+      "patientName": "q q",
+      "patientEmail": "fakea@fw.cac",
+      "patientPhone": "0543219876",
+      "id": 2,
+      "status": "cancelled",
+      "archived": true
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-08",
+      "startTime": "10:00",
+      "patientName": "ahed ali",
+      "patientEmail": "fake@gamil.com",
+      "patientPhone": "+966534955842",
+      "status": "confirmed",
+      "createdAt": "2026-01-01T22:03:53.370Z",
+      "id": 3
+    },
+    {
+      "clinicId": 4,
+      "doctorId": 2,
+      "serviceId": 1,
+      "date": "2026-01-08",
+      "startTime": "10:00",
+      "patientName": "s dx",
+      "patientEmail": "fake@gamil.com",
       "patientPhone": "0534955842",
-      "id": 2
+      "status": "confirmed",
+      "createdAt": "2026-01-01T22:10:56.806Z",
+      "id": 4
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-08",
+      "startTime": "10:30",
+      "patientName": "ahmed ali",
+      "patientEmail": "fake@gamil.com",
+      "patientPhone": "+966511567408",
+      "status": "confirmed",
+      "createdAt": "2026-01-01T22:16:48.851Z",
+      "id": 5
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-08",
+      "startTime": "11:00",
+      "patientName": "hlk lkh",
+      "patientEmail": "fake@gamil.com",
+      "patientPhone": "0534955842",
+      "status": "confirmed",
+      "createdAt": "2026-01-01T22:17:53.772Z",
+      "id": 6
     }
   ]
 }

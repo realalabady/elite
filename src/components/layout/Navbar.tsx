@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Globe, Phone } from "lucide-react";
+import { Menu, X, Globe, Phone, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 
@@ -21,9 +22,29 @@ const navLinks = [
 export const Navbar = () => {
   const { t } = useTranslation();
   const { currentLanguage, toggleLanguage, isRTL } = useLanguage();
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    // Only navigate to home if we're on a protected route
+    const publicPaths = [
+      "/",
+      "/about",
+      "/doctors",
+      "/clinics",
+      "/insurance",
+      "/booking",
+      "/careers",
+      "/contact",
+    ];
+    if (!publicPaths.includes(location.pathname)) {
+      navigate("/");
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,12 +100,12 @@ export const Navbar = () => {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-4 shrink-0">
+            <div className="flex items-center gap-3 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleLanguage}
-                className="hidden sm:flex items-center gap-2 text-foreground/70 hover:text-primary"
+                className="hidden sm:flex items-center gap-2 text-foreground/70 hover:text-primary h-9 px-3"
               >
                 <Globe className="w-4 h-4" />
                 <span className="text-sm">
@@ -92,12 +113,41 @@ export const Navbar = () => {
                 </span>
               </Button>
 
-              <Link to="/booking" className="hidden md:block">
-                <Button size="default">
-                  <Phone className="w-4 h-4" />
-                  {t("nav.booking")}
-                </Button>
-              </Link>
+              {isAuthenticated && user && (
+                <div className="hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium leading-none">
+                        {user.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground capitalize">
+                        {user.role}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="h-8 px-2 text-foreground/70 hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <LogOut className="w-3.5 h-3.5 mr-1" />
+                    <span className="text-xs">Logout</span>
+                  </Button>
+                </div>
+              )}
+
+              {!isAuthenticated && (
+                <Link to="/booking" className="hidden lg:block">
+                  <Button size="default" className="h-9">
+                    <Phone className="w-4 h-4" />
+                    {t("nav.booking")}
+                  </Button>
+                </Link>
+              )}
 
               <Button
                 variant="outline"
@@ -164,6 +214,22 @@ export const Navbar = () => {
                 </nav>
 
                 <div className="p-4 space-y-3 border-t border-border">
+                  {isAuthenticated && user && (
+                    <div className="mb-3 p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <User className="w-4 h-4" />
+                        <span className="font-medium text-sm">{user.name}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </Button>
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     className="w-full"

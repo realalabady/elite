@@ -3,6 +3,15 @@ const path = require("path");
 
 // Simple working middleware for json-server
 module.exports = (req, res, next) => {
+  // Handle POST requests to /appointments - set default status to confirmed
+  if (req.method === "POST" && req.url === "/appointments") {
+    if (!req.body.status) {
+      req.body.status = "confirmed";
+    }
+    req.body.createdAt = new Date().toISOString();
+    return next();
+  }
+
   // Only handle GET requests to /available-slots
   if (req.method === "GET" && req.url.includes("/available-slots")) {
     try {
@@ -70,7 +79,21 @@ module.exports = (req, res, next) => {
         currentMinutes += 30;
       }
 
-      return res.json(allSlots);
+      // Filter out booked slots - check existing appointments for this doctor on this date
+      const bookedSlots = db.appointments
+        .filter(
+          (apt) =>
+            apt.doctorId == parsedDoctorId &&
+            apt.date === date &&
+            apt.status !== "cancelled"
+        )
+        .map((apt) => apt.startTime);
+
+      const availableSlots = allSlots.filter(
+        (slot) => !bookedSlots.includes(slot)
+      );
+
+      return res.json(availableSlots);
     } catch (error) {
       console.error("Error in available-slots middleware:", error);
       return res.status(500).json({ error: "Internal server error" });

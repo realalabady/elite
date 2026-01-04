@@ -2,6 +2,17 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = [
+  // Middleware to set default status for new appointments
+  (req, res, next) => {
+    if (req.method === "POST" && req.path === "/appointments") {
+      if (!req.body.status) {
+        req.body.status = "confirmed";
+      }
+      req.body.createdAt = new Date().toISOString();
+    }
+    next();
+  },
+  // Available slots middleware
   (req, res, next) => {
     if (req.method === "GET" && req.path === "/available-slots") {
       try {

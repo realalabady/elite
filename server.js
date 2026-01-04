@@ -26,6 +26,17 @@ server.use((req, res, next) => {
   }
 });
 
+// Middleware to set default status for new appointments
+server.use((req, res, next) => {
+  if (req.method === "POST" && req.path === "/appointments") {
+    if (!req.body.status) {
+      req.body.status = "confirmed";
+    }
+    req.body.createdAt = new Date().toISOString();
+  }
+  next();
+});
+
 // Add custom middleware for /available-slots
 server.use((req, res, next) => {
   if (req.method === "GET" && req.path === "/available-slots") {
