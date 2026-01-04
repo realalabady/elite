@@ -9,13 +9,13 @@ import { getAuth, RecaptchaVerifier } from "firebase/auth";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyABZHJu-0YR9FjGJsMiKBz5b47Kt7XZPRQ",
-  authDomain: "elite-dc120.firebaseapp.com",
-  projectId: "elite-dc120",
-  storageBucket: "elite-dc120.firebasestorage.app",
-  messagingSenderId: "682822065704",
-  appId: "1:682822065704:web:d637976a3f4db080d5df1d",
-  measurementId: "G-JEFBS13S7W",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
