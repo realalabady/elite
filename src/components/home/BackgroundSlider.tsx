@@ -18,13 +18,13 @@ export const BackgroundSlider = () => {
   return (
     <div className="absolute inset-0 z-0">
       {/* Background Images with Transitions */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         <motion.div
           key={currentIndex}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
           className="absolute inset-0"
         >
           <img
@@ -32,10 +32,11 @@ export const BackgroundSlider = () => {
             alt={`Background ${currentIndex + 1}`}
             className="w-full h-full object-cover"
           />
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/40" />
         </motion.div>
       </AnimatePresence>
+
+      {/* Static dark overlay to avoid flicker during transitions */}
+      <div className="absolute inset-0 bg-black/30 pointer-events-none" />
 
       {/* Dot Indicators */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-2">

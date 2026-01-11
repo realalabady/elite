@@ -25,23 +25,27 @@ export const useAppointmentData = () => {
       today.setHours(0, 0, 0, 0);
 
       const updates: Promise<any>[] = [];
-      const normalizedAppointments = appointmentsData.map((apt: Appointment) => {
-        const aptDate = new Date(apt.date);
-        aptDate.setHours(0, 0, 0, 0);
-        const isPast = aptDate.getTime() < today.getTime();
-        // New rule: any past appointment that is still confirmed or rescheduled becomes completed
-        if (
-          isPast &&
-          (apt.status === "confirmed" || apt.status === "rescheduled") &&
-          apt.status !== "completed"
-        ) {
-          updates.push(
-            bookingApi.updateAppointmentStatus(apt.id, { status: "completed" })
-          );
-          return { ...apt, status: "completed" };
+      const normalizedAppointments = appointmentsData.map(
+        (apt: Appointment) => {
+          const aptDate = new Date(apt.date);
+          aptDate.setHours(0, 0, 0, 0);
+          const isPast = aptDate.getTime() < today.getTime();
+          // New rule: any past appointment that is still confirmed or rescheduled becomes completed
+          if (
+            isPast &&
+            (apt.status === "confirmed" || apt.status === "rescheduled") &&
+            apt.status !== "completed"
+          ) {
+            updates.push(
+              bookingApi.updateAppointmentStatus(apt.id, {
+                status: "completed",
+              })
+            );
+            return { ...apt, status: "completed" };
+          }
+          return apt;
         }
-        return apt;
-      });
+      );
 
       // Execute updates, but don't block UI on failures
       if (updates.length > 0) {

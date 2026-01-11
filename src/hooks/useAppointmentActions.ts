@@ -158,7 +158,9 @@ export const useAppointmentActions = (
   ) => {
     // Set arrival status explicitly to the provided value
     try {
-      const payload: { arrived?: boolean | null; status?: string } = { arrived };
+      const payload: { arrived?: boolean | null; status?: string } = {
+        arrived,
+      };
 
       // If appointment is past and marked as arrived, also mark as completed
       if (appointmentDate && arrived === true) {

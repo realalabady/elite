@@ -2,10 +2,22 @@ import { Appointment } from "@/services/api";
 
 export const getStatusBadgeConfig = (status: string) => {
   const statusConfig = {
-    confirmed: { variant: "default" as const, label: "Confirmed", className: "" },
+    confirmed: {
+      variant: "default" as const,
+      label: "Confirmed",
+      className: "",
+    },
     pending: { variant: "secondary" as const, label: "Pending", className: "" },
-    cancelled: { variant: "destructive" as const, label: "Cancelled", className: "" },
-    completed: { variant: "outline" as const, label: "Completed", className: "" },
+    cancelled: {
+      variant: "destructive" as const,
+      label: "Cancelled",
+      className: "",
+    },
+    completed: {
+      variant: "outline" as const,
+      label: "Completed",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    },
     rescheduled: {
       variant: "outline" as const,
       label: "Rescheduled",

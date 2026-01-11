@@ -963,7 +963,8 @@ const AdminReservations = ({
               {!reschedule.isRescheduling && (
                 <div className="mt-6 pt-6 border-t space-y-2">
                   {/* Arrival Status Toggle */}
-                  {(selectedAppointment.status === "confirmed" || selectedAppointment.status === "rescheduled") && (
+                  {(selectedAppointment.status === "confirmed" ||
+                    selectedAppointment.status === "rescheduled") && (
                     <div className="space-y-2">
                       <div className="text-sm font-medium">Arrival Status</div>
                       <div className="flex gap-2">
