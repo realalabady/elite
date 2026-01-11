@@ -84,8 +84,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return false;
       }
 
-      // Fetch users from json-server
-      const response = await fetch("http://localhost:3002/users");
+      // Fetch users from json-server on port 3003
+      const response = await fetch("http://localhost:3003/users");
 
       if (!response.ok) {
         throw new Error("Failed to fetch users");

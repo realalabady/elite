@@ -857,7 +857,7 @@ const Booking = () => {
         </div>
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 120" className="w-full h-auto fill-background">
-            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
+            <path d="M0,105L80,110.7C160,117,320,127,480,121C640,117,800,95,960,90C1120,85,1280,95,1360,100.7L1440,105L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
           </svg>
         </div>
       </section>
@@ -1306,13 +1306,6 @@ const Booking = () => {
                       ? "إعادة إرسال الرمز"
                       : "Resend Code"}
                   </button>
-                  {resendCooldown > 0 && (
-                    <p className="text-center text-xs text-muted-foreground mt-2">
-                      {lang === "ar"
-                        ? `يمكنك طلب رمز جديد بعد ${resendCooldown} ثانية`
-                        : `You can request a new code in ${resendCooldown}s`}
-                    </p>
-                  )}
                 </div>
               </motion.div>
             )}

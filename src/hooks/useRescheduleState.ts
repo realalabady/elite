@@ -9,12 +9,14 @@ export const useRescheduleState = (selectedAppointment?: Appointment) => {
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [note, setNote] = useState("");
 
   const startReschedule = () => {
     if (selectedAppointment) {
       setIsRescheduling(true);
       setSelectedDate(selectedAppointment.date);
       setSelectedTime(selectedAppointment.startTime);
+      setNote(selectedAppointment.notes || "");
     }
   };
 
@@ -23,6 +25,7 @@ export const useRescheduleState = (selectedAppointment?: Appointment) => {
     setSelectedDate("");
     setSelectedTime("");
     setAvailableSlots([]);
+    setNote("");
   };
 
   const loadAvailableSlots = async (date: string) => {
@@ -73,6 +76,8 @@ export const useRescheduleState = (selectedAppointment?: Appointment) => {
     cancelReschedule,
     handleDateChange,
     setSelectedTime,
+    note,
+    setNote,
     canConfirmReschedule,
   };
 };

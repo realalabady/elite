@@ -20,7 +20,39 @@ export const useAppointmentData = () => {
           bookingApi.getDoctors(),
           bookingApi.getServices(),
         ]);
-      setAppointments(appointmentsData);
+      // Auto-update past appointments: if arrived === true and date is past, mark as completed
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const updates: Promise<any>[] = [];
+      const normalizedAppointments = appointmentsData.map((apt: Appointment) => {
+        const aptDate = new Date(apt.date);
+        aptDate.setHours(0, 0, 0, 0);
+        const isPast = aptDate.getTime() < today.getTime();
+        // New rule: any past appointment that is still confirmed or rescheduled becomes completed
+        if (
+          isPast &&
+          (apt.status === "confirmed" || apt.status === "rescheduled") &&
+          apt.status !== "completed"
+        ) {
+          updates.push(
+            bookingApi.updateAppointmentStatus(apt.id, { status: "completed" })
+          );
+          return { ...apt, status: "completed" };
+        }
+        return apt;
+      });
+
+      // Execute updates, but don't block UI on failures
+      if (updates.length > 0) {
+        try {
+          await Promise.all(updates);
+        } catch (e) {
+          // Non-blocking: log if needed; keep local state consistent
+        }
+      }
+
+      setAppointments(normalizedAppointments);
       setClinics(clinicsData);
       setDoctors(doctorsData);
       setServices(servicesData);

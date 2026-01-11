@@ -51,19 +51,23 @@ export const useAppointmentActions = (
   const rescheduleAppointment = async (
     appointmentId: number,
     date: string,
-    startTime: string
+    startTime: string,
+    note?: string
   ) => {
     setRescheduling(true);
     try {
       await bookingApi.updateAppointmentStatus(appointmentId, {
-        status: "confirmed",
+        status: "rescheduled",
         date,
         startTime,
+        notes: note,
       });
 
       setAppointments((prev) =>
         prev.map((apt) =>
-          apt.id === appointmentId ? { ...apt, date, startTime } : apt
+          apt.id === appointmentId
+            ? { ...apt, status: "rescheduled", date, startTime, notes: note }
+            : apt
         )
       );
 
@@ -147,11 +151,69 @@ export const useAppointmentActions = (
     }
   };
 
+  const toggleArrivalStatus = async (
+    appointmentId: number,
+    arrived: boolean | null,
+    appointmentDate?: string
+  ) => {
+    // Set arrival status explicitly to the provided value
+    try {
+      const payload: { arrived?: boolean | null; status?: string } = { arrived };
+
+      // If appointment is past and marked as arrived, also mark as completed
+      if (appointmentDate && arrived === true) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const aptDate = new Date(appointmentDate);
+        aptDate.setHours(0, 0, 0, 0);
+        if (aptDate.getTime() < today.getTime()) {
+          payload.status = "completed";
+        }
+      }
+
+      await bookingApi.updateAppointmentStatus(appointmentId, payload);
+
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === appointmentId
+            ? {
+                ...apt,
+                arrived,
+                ...(payload.status ? { status: payload.status } : {}),
+              }
+            : apt
+        )
+      );
+
+      const statusText =
+        arrived === true
+          ? "Marked as arrived"
+          : arrived === false
+          ? "Marked as no-show"
+          : "Status cleared";
+
+      toast({
+        title: "Success",
+        description: statusText,
+      });
+
+      return true;
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to update arrival status",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     cancelAppointment,
     rescheduleAppointment,
     archiveAppointment,
     unarchiveAppointment,
+    toggleArrivalStatus,
     cancelling,
     rescheduling,
     archiving,

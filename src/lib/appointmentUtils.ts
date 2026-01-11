@@ -2,22 +2,30 @@ import { Appointment } from "@/services/api";
 
 export const getStatusBadgeConfig = (status: string) => {
   const statusConfig = {
-    confirmed: { variant: "default" as const, label: "Confirmed" },
-    pending: { variant: "secondary" as const, label: "Pending" },
-    cancelled: { variant: "destructive" as const, label: "Cancelled" },
-    completed: { variant: "outline" as const, label: "Completed" },
+    confirmed: { variant: "default" as const, label: "Confirmed", className: "" },
+    pending: { variant: "secondary" as const, label: "Pending", className: "" },
+    cancelled: { variant: "destructive" as const, label: "Cancelled", className: "" },
+    completed: { variant: "outline" as const, label: "Completed", className: "" },
+    rescheduled: {
+      variant: "outline" as const,
+      label: "Rescheduled",
+      className: "border-amber-200 bg-amber-50 text-amber-700",
+    },
   };
 
   return (
     statusConfig[status as keyof typeof statusConfig] || {
       variant: "secondary" as const,
       label: status,
+      className: "",
     }
   );
 };
 
 export const formatDate = (dateString: string) => {
+  if (!dateString) return "Invalid Date";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -44,7 +52,7 @@ export const calculateStats = (appointments: Appointment[]) => {
   return {
     total: appointments.length,
     confirmed: appointments.filter((a) => a.status === "confirmed").length,
-    pending: appointments.filter((a) => a.status === "pending").length,
+    rescheduled: appointments.filter((a) => a.status === "rescheduled").length,
     cancelled: appointments.filter((a) => a.status === "cancelled").length,
   };
 };

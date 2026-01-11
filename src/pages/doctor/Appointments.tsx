@@ -83,7 +83,7 @@ const DoctorAppointments = () => {
         if (dateFilter === "all") return true;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const aptDate = new Date(apt.appointmentDate);
+        const aptDate = new Date(apt.date);
         aptDate.setHours(0, 0, 0, 0);
 
         if (dateFilter === "today") {
@@ -105,7 +105,7 @@ const DoctorAppointments = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return filteredAppointments.filter((apt) => {
-      const aptDate = new Date(apt.appointmentDate);
+      const aptDate = new Date(apt.date);
       aptDate.setHours(0, 0, 0, 0);
       return aptDate.getTime() >= today.getTime() && apt.status === "confirmed";
     });
@@ -127,6 +127,31 @@ const DoctorAppointments = () => {
       <Badge variant={config.variant} className={config.className}>
         {config.icon}
         {config.label}
+      </Badge>
+    );
+  };
+
+  const renderArrivalBadge = (arrived: boolean | null | undefined) => {
+    if (arrived === null || arrived === undefined) {
+      return (
+        <Badge variant="outline" className="bg-gray-100 border-gray-300">
+          Pending
+        </Badge>
+      );
+    }
+    if (arrived === true) {
+      return (
+        <Badge className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+          Arrived
+        </Badge>
+      );
+    }
+    return (
+      <Badge
+        variant="destructive"
+        className="bg-red-600 hover:bg-red-700 border-red-600"
+      >
+        No-Show
       </Badge>
     );
   };
@@ -186,14 +211,11 @@ const DoctorAppointments = () => {
             <p className="text-xl text-primary-foreground/80 mb-2">
               Dr. {doctor.name}
             </p>
-            <p className="text-sm text-primary-foreground/70">
-              {doctor.specialty} • View-only access
-            </p>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 120" className="w-full h-auto fill-background">
-            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
+            <path d="M0,105L80,110.7C160,117,320,127,480,121C640,117,800,95,960,90C1120,85,1280,95,1360,100.7L1440,105L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
           </svg>
         </div>
       </section>
@@ -288,6 +310,7 @@ const DoctorAppointments = () => {
             getClinicName={getClinicName}
             getServiceName={getServiceName}
             renderStatusBadge={renderStatusBadge}
+            renderArrivalBadge={renderArrivalBadge}
           />
         </div>
       </section>
@@ -298,9 +321,9 @@ const DoctorAppointments = () => {
 // Appointments Table Component
 const AppointmentsTable = ({
   appointments,
-  getClinicName,
   getServiceName,
   renderStatusBadge,
+  renderArrivalBadge,
 }: any) => {
   if (appointments.length === 0) {
     return (
@@ -321,9 +344,8 @@ const AppointmentsTable = ({
             <TableRow>
               <TableHead>Patient</TableHead>
               <TableHead>Date & Time</TableHead>
-              <TableHead>Clinic</TableHead>
-              <TableHead>Service</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Arrival</TableHead>
               <TableHead>Contact</TableHead>
             </TableRow>
           </TableHeader>
@@ -345,18 +367,15 @@ const AppointmentsTable = ({
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-muted-foreground" />
                     <div>
-                      <div className="font-medium">
-                        {formatDate(apt.appointmentDate)}
-                      </div>
+                      <div className="font-medium">{formatDate(apt.date)}</div>
                       <div className="text-xs text-muted-foreground">
-                        {apt.appointmentTime}
+                        {apt.startTime}
                       </div>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{getClinicName(apt.clinicId)}</TableCell>
-                <TableCell>{getServiceName(apt.serviceId)}</TableCell>
                 <TableCell>{renderStatusBadge(apt.status)}</TableCell>
+                <TableCell>{renderArrivalBadge(apt.arrived)}</TableCell>
                 <TableCell>
                   <div className="text-xs space-y-1">
                     <div className="flex items-center gap-1">

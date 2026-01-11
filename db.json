@@ -665,7 +665,8 @@
       "id": 1,
       "status": "cancelled",
       "notes": "he want it to cancel it",
-      "archived": false
+      "archived": true,
+      "arrived": null
     },
     {
       "clinicId": 2,
@@ -678,46 +679,52 @@
       "patientPhone": "0543219876",
       "id": 2,
       "status": "cancelled",
-      "archived": true
+      "archived": true,
+      "arrived": null
     },
     {
       "clinicId": 2,
       "doctorId": 5,
       "serviceId": 1,
-      "date": "2026-01-08",
-      "startTime": "10:00",
+      "date": "2026-01-12",
+      "startTime": "11:30",
       "patientName": "ahed ali",
       "patientEmail": "fake@gamil.com",
       "patientPhone": "+966534955842",
-      "status": "confirmed",
+      "status": "rescheduled",
       "createdAt": "2026-01-01T22:03:53.370Z",
-      "id": 3
+      "id": 3,
+      "arrived": null
     },
     {
       "clinicId": 4,
       "doctorId": 2,
       "serviceId": 1,
-      "date": "2026-01-08",
-      "startTime": "10:00",
+      "date": "2026-01-12",
+      "startTime": "10:30",
       "patientName": "s dx",
       "patientEmail": "fake@gamil.com",
       "patientPhone": "0534955842",
-      "status": "confirmed",
+      "status": "rescheduled",
       "createdAt": "2026-01-01T22:10:56.806Z",
-      "id": 4
+      "id": 4,
+      "notes": "",
+      "arrived": null
     },
     {
       "clinicId": 2,
       "doctorId": 5,
       "serviceId": 1,
-      "date": "2026-01-08",
-      "startTime": "10:30",
+      "date": "2026-01-15",
+      "startTime": "13:30",
       "patientName": "ahmed ali",
       "patientEmail": "fake@gamil.com",
       "patientPhone": "+966511567408",
-      "status": "confirmed",
+      "status": "rescheduled",
       "createdAt": "2026-01-01T22:16:48.851Z",
-      "id": 5
+      "id": 5,
+      "notes": "",
+      "arrived": null
     },
     {
       "clinicId": 2,
@@ -728,22 +735,24 @@
       "patientName": "hlk lkh",
       "patientEmail": "fake@gamil.com",
       "patientPhone": "0534955842",
-      "status": "confirmed",
+      "status": "completed",
       "createdAt": "2026-01-01T22:17:53.772Z",
-      "id": 6
+      "id": 6,
+      "arrived": null
     },
     {
       "clinicId": 4,
       "doctorId": 2,
       "serviceId": 1,
-      "date": "2026-01-12",
-      "startTime": "11:30",
+      "date": "2026-01-14",
+      "startTime": "12:00",
       "patientName": "f f",
       "patientEmail": "ff@Ff.22",
       "patientPhone": "0534955842",
       "status": "confirmed",
       "createdAt": "2026-01-04T15:09:55.977Z",
-      "id": 7
+      "id": 7,
+      "arrived": null
     },
     {
       "clinicId": 2,
@@ -756,7 +765,8 @@
       "patientPhone": "0534955842",
       "status": "confirmed",
       "createdAt": "2026-01-04T21:28:11.822Z",
-      "id": 8
+      "id": 8,
+      "arrived": null
     },
     {
       "clinicId": 8,
@@ -767,9 +777,10 @@
       "patientName": "ahmed ali",
       "patientEmail": "fakealabady@gmail.com",
       "patientPhone": "0534955842",
-      "status": "confirmed",
+      "status": "completed",
       "createdAt": "2026-01-04T21:29:29.782Z",
-      "id": 9
+      "id": 9,
+      "arrived": null
     },
     {
       "clinicId": 6,
@@ -782,7 +793,64 @@
       "patientPhone": "0534955842",
       "status": "confirmed",
       "createdAt": "2026-01-04T21:31:40.680Z",
-      "id": 10
+      "id": 10,
+      "arrived": null
+    },
+    {
+      "clinicId": 8,
+      "doctorId": 6,
+      "serviceId": 1,
+      "date": "2026-01-12",
+      "startTime": "10:30",
+      "patientName": "rufida ali",
+      "patientEmail": "fake@gamil.com",
+      "patientPhone": "0534955842",
+      "status": "confirmed",
+      "createdAt": "2026-01-05T10:27:46.281Z",
+      "id": 11,
+      "arrived": null
+    },
+    {
+      "clinicId": 8,
+      "doctorId": 6,
+      "serviceId": 1,
+      "date": "2026-01-12",
+      "startTime": "10:30",
+      "patientName": "rufida ali",
+      "patientEmail": "fake@gamil.com",
+      "patientPhone": "0534955842",
+      "status": "confirmed",
+      "createdAt": "2026-02-05T10:27:46.281Z",
+      "id": 12,
+      "arrived": null
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-10",
+      "startTime": "10:30",
+      "patientName": "ahmed ali",
+      "patientEmail": "fake@alabady@gmail.com",
+      "patientPhone": "0534955842",
+      "status": "completed",
+      "createdAt": "2026-01-10T21:52:14.647Z",
+      "id": 13,
+      "arrived": null
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-11",
+      "startTime": "11:00",
+      "patientName": "ahmed ali",
+      "patientEmail": "fake@alabady@gmail.com",
+      "patientPhone": "0534955842",
+      "status": "confirmed",
+      "createdAt": "2026-01-10T21:53:28.137Z",
+      "id": 14,
+      "arrived": true
     }
   ]
 }

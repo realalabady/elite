@@ -30,6 +30,12 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -106,12 +112,14 @@ const AdminReservations = ({
     rescheduleAppointment,
     archiveAppointment,
     unarchiveAppointment,
+    toggleArrivalStatus,
     cancelling,
     rescheduling,
     archiving,
   } = useAppointmentActions(setAppointments);
 
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+  const [isRescheduleDialogOpen, setIsRescheduleDialogOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     number | null
   >(null);
@@ -119,10 +127,32 @@ const AdminReservations = ({
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Calculate paginated appointments
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAppointments = filters.filteredAppointments.slice(
+    startIndex,
+    endIndex
+  );
+  const totalPages = Math.ceil(
+    filters.filteredAppointments.length / itemsPerPage
+  );
 
   const selectedAppointment = appointments.find(
     (apt) => apt.id === selectedAppointmentId
   );
+
+  // Allow arrival status changes only on the appointment date
+  const isAppointmentToday = (() => {
+    if (!selectedAppointment?.date) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const aptDate = new Date(selectedAppointment.date);
+    aptDate.setHours(0, 0, 0, 0);
+    return aptDate.getTime() === today.getTime();
+  })();
 
   const reschedule = useRescheduleState(selectedAppointment);
   const stats = calculateStats(appointments);
@@ -230,19 +260,49 @@ const AdminReservations = ({
     const success = await rescheduleAppointment(
       selectedAppointmentId,
       reschedule.selectedDate,
-      reschedule.selectedTime
+      reschedule.selectedTime,
+      reschedule.note
     );
 
     if (success) {
       reschedule.cancelReschedule();
+      setIsRescheduleDialogOpen(false);
     }
   };
 
   const renderStatusBadge = (status: string) => {
     const config = getStatusBadgeConfig(status);
     return (
-      <Badge variant={config.variant} className="capitalize">
+      <Badge
+        variant={config.variant}
+        className={`capitalize ${config.className ? config.className : ""}`}
+      >
         {config.label}
+      </Badge>
+    );
+  };
+
+  const renderArrivalBadge = (arrived: boolean | null | undefined) => {
+    if (arrived === null || arrived === undefined) {
+      return (
+        <Badge variant="outline" className="bg-gray-100 border-gray-300">
+          Pending
+        </Badge>
+      );
+    }
+    if (arrived === true) {
+      return (
+        <Badge className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+          Arrived
+        </Badge>
+      );
+    }
+    return (
+      <Badge
+        variant="destructive"
+        className="bg-red-600 hover:bg-red-700 border-red-600"
+      >
+        No-Show
       </Badge>
     );
   };
@@ -265,14 +325,12 @@ const AdminReservations = ({
                 {role === "admin" ? "Admin" : "Staff"}
               </Badge>
             </div>
-            <p className="text-xl text-primary-foreground/80 mb-4">
-              View, manage, and track all patient appointments
-            </p>
+            <p className="text-xl text-primary-foreground/80 mb-4"></p>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 120" className="w-full h-auto fill-background">
-            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
+            <path d="M0,105L80,110.7C160,117,320,127,480,121C640,117,800,95,960,90C1120,85,1280,95,1360,100.7L1440,105L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
           </svg>
         </div>
       </section>
@@ -301,10 +359,10 @@ const AdminReservations = ({
               </Card>
               <Card>
                 <CardContent className="pt-6">
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {stats.pending}
+                  <div className="text-2xl font-bold text-amber-600">
+                    {stats.rescheduled}
                   </div>
-                  <p className="text-xs text-muted-foreground">Pending</p>
+                  <p className="text-xs text-muted-foreground">Rescheduled</p>
                 </CardContent>
               </Card>
               <Card>
@@ -369,7 +427,7 @@ const AdminReservations = ({
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="rescheduled">Rescheduled</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
@@ -497,6 +555,7 @@ const AdminReservations = ({
                         </div>
                       </TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Arrival</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -565,7 +624,7 @@ const AdminReservations = ({
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filters.filteredAppointments.map((apt) => (
+                      paginatedAppointments.map((apt) => (
                         <TableRow
                           key={apt.id}
                           className={cn(
@@ -592,6 +651,9 @@ const AdminReservations = ({
                           <TableCell>{formatDate(apt.date)}</TableCell>
                           <TableCell>{apt.startTime}</TableCell>
                           <TableCell>{renderStatusBadge(apt.status)}</TableCell>
+                          <TableCell>
+                            {renderArrivalBadge(apt.arrived)}
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -602,8 +664,9 @@ const AdminReservations = ({
               {/* Pagination */}
               <div className="flex items-center justify-between mt-6">
                 <div className="text-sm text-muted-foreground">
-                  Showing {filters.filteredAppointments.length} of{" "}
-                  {appointments.length} reservations
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(endIndex, filters.filteredAppointments.length)} of{" "}
+                  {filters.filteredAppointments.length} reservations
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -614,10 +677,13 @@ const AdminReservations = ({
                   >
                     Previous
                   </Button>
+                  <span className="flex items-center px-3 text-sm">
+                    Page {currentPage} of {totalPages || 1}
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={filters.filteredAppointments.length === 0}
+                    disabled={currentPage >= totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
                   >
                     Next
@@ -737,15 +803,6 @@ const AdminReservations = ({
                         <p className="text-sm text-muted-foreground">Doctor</p>
                         <p className="font-medium">
                           {getDoctorName(selectedAppointment.doctorId)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Service</p>
-                        <p className="font-medium">
-                          {getServiceName(selectedAppointment.serviceId)}
                         </p>
                       </div>
                     </div>
@@ -890,7 +947,7 @@ const AdminReservations = ({
                       </Button>
                       <Button
                         className="flex-1"
-                        onClick={handleConfirmReschedule}
+                        onClick={() => setIsRescheduleDialogOpen(true)}
                         disabled={
                           !reschedule.canConfirmReschedule || rescheduling
                         }
@@ -905,6 +962,116 @@ const AdminReservations = ({
               {/* Actions */}
               {!reschedule.isRescheduling && (
                 <div className="mt-6 pt-6 border-t space-y-2">
+                  {/* Arrival Status Toggle */}
+                  {(selectedAppointment.status === "confirmed" || selectedAppointment.status === "rescheduled") && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Arrival Status</div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={
+                            selectedAppointment.arrived === null
+                              ? "outline"
+                              : "outline"
+                          }
+                          className={cn(
+                            "flex-1",
+                            selectedAppointment.arrived === null
+                              ? "bg-gray-100 border-gray-300"
+                              : ""
+                          )}
+                          disabled={true}
+                        >
+                          <Clock className="w-4 h-4 mr-2" />
+                          Pending
+                        </Button>
+                        <TooltipProvider delayDuration={100}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              {/* Wrap disabled button in a span so tooltip can trigger */}
+                              <span className="flex-1">
+                                <Button
+                                  variant={
+                                    selectedAppointment.arrived === true
+                                      ? "default"
+                                      : "outline"
+                                  }
+                                  className={cn(
+                                    "w-full",
+                                    selectedAppointment.arrived === true
+                                      ? "bg-green-600 hover:bg-green-700 border-green-600"
+                                      : ""
+                                  )}
+                                  disabled={!isAppointmentToday}
+                                  onClick={() =>
+                                    toggleArrivalStatus(
+                                      selectedAppointment.id,
+                                      true,
+                                      selectedAppointment.date
+                                    )
+                                  }
+                                >
+                                  <Check className="w-4 h-4 mr-2" />
+                                  Arrived
+                                </Button>
+                              </span>
+                            </TooltipTrigger>
+                            {!isAppointmentToday && (
+                              <TooltipContent side="top">
+                                Arrival status can be changed only on the
+                                appointment day.
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={100}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              {/* Wrap disabled button in a span so tooltip can trigger */}
+                              <span className="flex-1">
+                                <Button
+                                  variant={
+                                    selectedAppointment.arrived === false
+                                      ? "destructive"
+                                      : "outline"
+                                  }
+                                  className={cn(
+                                    "w-full",
+                                    selectedAppointment.arrived === false
+                                      ? "bg-red-600 hover:bg-red-700 border-red-600"
+                                      : ""
+                                  )}
+                                  disabled={!isAppointmentToday}
+                                  onClick={() =>
+                                    toggleArrivalStatus(
+                                      selectedAppointment.id,
+                                      false,
+                                      selectedAppointment.date
+                                    )
+                                  }
+                                >
+                                  <X className="w-4 h-4 mr-2" />
+                                  No-Show
+                                </Button>
+                              </span>
+                            </TooltipTrigger>
+                            {!isAppointmentToday && (
+                              <TooltipContent side="top">
+                                Arrival status can be changed only on the
+                                appointment day.
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      {!isAppointmentToday && (
+                        <p className="text-xs text-muted-foreground">
+                          Arrival status can be changed only on the appointment
+                          day.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {selectedAppointment.status !== "cancelled" && (
                     <>
                       {permissions.canReschedule && (
@@ -963,6 +1130,57 @@ const AdminReservations = ({
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Reschedule Confirmation Dialog */}
+      <AlertDialog
+        open={isRescheduleDialogOpen}
+        onOpenChange={setIsRescheduleDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reschedule Booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will update the appointment date/time and mark it as
+              rescheduled. Please confirm before saving.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">New Date</span>
+              <span className="font-semibold">
+                {formatDate(reschedule.selectedDate)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">New Time</span>
+              <span className="font-semibold">{reschedule.selectedTime}</span>
+            </div>
+            {reschedule.note && (
+              <div>
+                <p className="text-muted-foreground mb-1">Note</p>
+                <p className="text-foreground">{reschedule.note}</p>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setIsRescheduleDialogOpen(false)}
+              disabled={rescheduling}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmReschedule}
+              disabled={rescheduling}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {rescheduling ? "Saving..." : "Confirm Reschedule"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Cancellation Confirmation Dialog */}
       <AlertDialog

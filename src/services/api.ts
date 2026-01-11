@@ -87,6 +87,7 @@ export const bookingApi = {
       date?: string;
       startTime?: string;
       archived?: boolean;
+      arrived?: boolean | null;
     }
   ) =>
     api.patch(`/appointments/${appointmentId}`, data).then((res) => res.data),
@@ -164,4 +165,5 @@ export interface Appointment {
   notes?: string;
   archived?: boolean;
   createdAt?: string;
+  arrived?: boolean | null;
 }

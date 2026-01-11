@@ -33,13 +33,17 @@ export const WhyChooseUs = () => {
   ];
 
   return (
-    <section className="py-20 bg-background">
-      <div className="container mx-auto px-4">
+    <section className="py-20 relative bg-gradient-to-b from-white via-blue-50/50 to-white overflow-hidden">
+      {/* Accent shapes */}
+      <div className="absolute top-0 right-[5%] w-72 h-72 bg-gradient-to-br from-primary/10 to-blue-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-[10%] w-64 h-64 bg-gradient-to-tr from-primary/10 to-transparent rounded-full blur-3xl" />
+
+      <div className="container mx-auto px-4 relative z-10">
         <FadeIn className="text-center mb-16">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h2 className="font-display text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 to-primary bg-clip-text text-transparent mb-4">
             {t("home.whyChooseUs")}
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-slate-600 text-lg max-w-2xl mx-auto font-medium">
             {t("home.whyChooseUsDesc")}
           </p>
         </FadeIn>
@@ -47,14 +51,14 @@ export const WhyChooseUs = () => {
         <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, idx) => (
             <StaggerItem key={idx}>
-              <div className="text-center group">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
-                  <feature.icon className="w-8 h-8 text-primary group-hover:text-primary-foreground transition-colors" />
+              <div className="text-center group bg-white rounded-2xl p-8 border-2 border-primary/10 shadow-lg hover:shadow-2xl hover:border-primary/30 transition-all duration-300">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary/30">
+                  <feature.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                <h3 className="font-display text-xl font-bold text-slate-900 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-slate-600 text-sm font-medium">
                   {feature.description}
                 </p>
               </div>
