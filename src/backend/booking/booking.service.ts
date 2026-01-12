@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma.service";
 import { JsonServerService } from "../json-server.service";
+import { EmailService } from "../email.service";
 
 @Injectable()
 export class BookingService {
@@ -32,7 +33,7 @@ export class BookingService {
       throw new Error("Time slot is already booked");
     }
 
-    return this.prisma.appointment.create({
+    const appointment = await this.prisma.appointment.create({
       data: {
         doctorId: data.doctorId,
         clinicId: data.clinicId,
@@ -42,10 +43,34 @@ export class BookingService {
       },
       include: {
         doctor: true,
-        clinic: true,
+        clinic: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
         service: true,
       },
     });
+
+    // Send confirmation email (non-blocking, fire and forget)
+    EmailService.sendConfirmationEmail({
+      patientName: data.patientName,
+      patientEmail: data.patientEmail,
+      doctorName: appointment.doctor.name,
+      clinicName: appointment.clinic.name,
+      serviceName: appointment.service.name,
+      date: data.date.toISOString().split("T")[0],
+      time: data.startTime,
+      appointmentId: appointment.id,
+      clinicAddress: (appointment.clinic as any).address || undefined,
+    }).catch((error) => {
+      console.error("Failed to send confirmation email:", error);
+      // Don't throw - email failure shouldn't break the booking
+    });
+
+    return appointment;
   }
 
   async createAppointment(dto: {
@@ -95,6 +120,7 @@ export class BookingService {
             select: {
               id: true,
               name: true,
+              address: true,
             },
           },
           service: {
@@ -107,7 +133,23 @@ export class BookingService {
         },
       });
 
-      // Step 3: Return confirmation response
+      // Step 3: Send confirmation email (non-blocking, fire and forget)
+      EmailService.sendConfirmationEmail({
+        patientName: dto.patientName,
+        patientEmail: dto.patientEmail,
+        doctorName: appointment.doctor.name,
+        clinicName: appointment.clinic.name,
+        serviceName: appointment.service.name,
+        date: dto.date,
+        time: dto.startTime,
+        appointmentId: appointment.id,
+        clinicAddress: (appointment.clinic as any).address || undefined,
+      }).catch((error) => {
+        console.error("Failed to send confirmation email:", error);
+        // Don't throw - email failure shouldn't break the booking
+      });
+
+      // Step 4: Return confirmation response
       return {
         success: true,
         appointment: {

@@ -166,4 +166,8 @@ export interface Appointment {
   archived?: boolean;
   createdAt?: string;
   arrived?: boolean | null;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  amount?: number;
+  paymentId?: string;
 }

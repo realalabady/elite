@@ -1,183 +1,47 @@
-const fs = require("fs");
-const path = require("path");
+import { Resend } from 'resend';
 
-// Load environment variables from .env file
-require("dotenv").config();
-
-// Import Resend for email notifications
-const { Resend } = require("resend");
-const resend = new Resend(process.env.RESEND_API_KEY || "");
-
-// Debug: Log if API key is loaded
-if (process.env.RESEND_API_KEY) {
-  console.log("✅ Resend API key loaded successfully");
-} else {
-  console.warn("⚠️ RESEND_API_KEY not found in environment variables");
+// Create Resend client lazily to ensure env vars are loaded
+function getResendClient(): Resend {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
+  return new Resend(apiKey);
 }
 
-module.exports = [
-  // Middleware to set default status for new appointments and send confirmation email
-  (req, res, next) => {
-    if (req.method === "POST" && req.path === "/appointments") {
-      if (!req.body.status) {
-        req.body.status = "confirmed";
-      }
-      req.body.createdAt = new Date().toISOString();
+interface AppointmentEmailData {
+  patientName: string;
+  patientEmail: string;
+  doctorName: string;
+  clinicName: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  appointmentId: number;
+  amount?: number;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  clinicAddress?: string;
+}
 
-      // Store the response data to send email after appointment is created
-      const originalSend = res.send;
-      res.send = async function (data) {
-        // Call original send first
-        originalSend.call(this, data);
-
-        // Try to send confirmation email (non-blocking)
-        try {
-          if (process.env.RESEND_API_KEY && req.body.patientEmail) {
-            const dbPath = path.join(__dirname, "db.json");
-            const db = JSON.parse(fs.readFileSync(dbPath, "utf8"));
-
-            // Get appointment details
-            const appointment = typeof data === "string" ? JSON.parse(data) : data;
-            const clinic = db.clinics.find((c) => c.id == req.body.clinicId);
-            const doctor = db.doctors.find((d) => d.id == req.body.doctorId);
-            const service = db.services.find((s) => s.id == req.body.serviceId);
-
-            if (clinic && doctor && service) {
-              const emailData = {
-                patientName: req.body.patientName,
-                patientEmail: req.body.patientEmail,
-                doctorName: doctor.name,
-                clinicName: clinic.name,
-                serviceName: service.name,
-                date: req.body.date,
-                time: req.body.startTime,
-                appointmentId: appointment.id,
-                amount: req.body.amount || clinic.consultationFee,
-                paymentMethod: req.body.paymentMethod,
-                paymentStatus: req.body.paymentStatus,
-                clinicAddress: clinic.location,
-              };
-
-              await sendConfirmationEmail(emailData);
-            }
-          }
-        } catch (error) {
-          console.error("❌ Failed to send confirmation email:", error.message);
-          // Don't fail the request if email fails
-        }
-      };
-    }
-    next();
-  },
-  // Available slots middleware
-  (req, res, next) => {
-    if (req.method === "GET" && req.path === "/available-slots") {
-      try {
-        // Read db.json
-        const dbPath = path.join(__dirname, "db.json");
-        const db = JSON.parse(fs.readFileSync(dbPath, "utf8"));
-
-        const { doctorId, date, serviceId } = req.query;
-
-        if (!doctorId || !date || !serviceId) {
-          res.status(400).json({
-            error:
-              "Missing required query parameters: doctorId, date, serviceId",
-          });
-          return;
-        }
-
-        const parsedDoctorId = parseInt(doctorId, 10);
-        const parsedServiceId = parseInt(serviceId, 10);
-        const parsedDate = new Date(date);
-
-        if (
-          isNaN(parsedDoctorId) ||
-          isNaN(parsedServiceId) ||
-          isNaN(parsedDate.getTime())
-        ) {
-          res.status(400).json({ error: "Invalid query parameters" });
-          return;
-        }
-
-        // Normalize date to start of day
-        const startOfDay = new Date(parsedDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(parsedDate);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        // Get service
-        const service = db.services.find((s) => s.id == parsedServiceId);
-        if (!service) {
-          res.status(404).json({ error: "Service not found" });
-          return;
-        }
-
-        // Get doctor's working hours for the day
-        const dayOfWeek = parsedDate
-          .toLocaleDateString("en-US", { weekday: "long" })
-          .toLowerCase();
-        const workingHours = db.workingHours.find(
-          (wh) => wh.doctorId == parsedDoctorId && wh.dayOfWeek === dayOfWeek
-        );
-
-        if (!workingHours) {
-          res.json([]);
-          return;
-        }
-
-        // Generate all possible slots within working hours
-        const allSlots = [];
-        const [startHours, startMinutes] = workingHours.startTime
-          .split(":")
-          .map(Number);
-        const [endHours, endMinutes] = workingHours.endTime
-          .split(":")
-          .map(Number);
-
-        let currentMinutes = startHours * 60 + startMinutes;
-        const endTotalMinutes = endHours * 60 + endMinutes;
-
-        while (currentMinutes + service.duration <= endTotalMinutes) {
-          const slotHours = Math.floor(currentMinutes / 60);
-          const slotMins = currentMinutes % 60;
-          const timeSlot = `${String(slotHours).padStart(2, "0")}:${String(
-            slotMins
-          ).padStart(2, "0")}`;
-
-          allSlots.push(timeSlot);
-          currentMinutes += 30;
-        }
-
-        res.json(allSlots);
-      } catch (error) {
-        console.error("Error in available-slots middleware:", error);
-        res.status(500).json({ error: "Internal server error" });
-      }
-    } else {
-      next();
-    }
-  },
-];
-
-// Email sending function
-async function sendConfirmationEmail(data) {
-  const formatDate = (dateString) => {
+export class EmailService {
+  private static formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
-  };
+  }
 
-  const isPaid = data.paymentStatus === "paid";
-  const paymentBadge = isPaid
-    ? '<span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 4px; font-size: 14px;">Paid</span>'
-    : '<span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 4px; font-size: 14px;">Payment Pending</span>';
+  private static generateConfirmationTemplate(data: AppointmentEmailData): string {
+    const isPaid = data.paymentStatus === 'paid';
+    const paymentBadge = isPaid
+      ? '<span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 4px; font-size: 14px;">Paid</span>'
+      : '<span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 4px; font-size: 14px;">Payment Pending</span>';
 
-  const html = `
+    return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -191,6 +55,7 @@ async function sendConfirmationEmail(data) {
       <td align="center" style="padding: 40px 0;">
         <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           
+          <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
               <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;">✅ Appointment Confirmed</h1>
@@ -198,6 +63,7 @@ async function sendConfirmationEmail(data) {
             </td>
           </tr>
 
+          <!-- Greeting -->
           <tr>
             <td style="padding: 30px 40px 20px 40px;">
               <p style="margin: 0; font-size: 16px; color: #374151;">Dear <strong>${data.patientName}</strong>,</p>
@@ -207,6 +73,7 @@ async function sendConfirmationEmail(data) {
             </td>
           </tr>
 
+          <!-- Appointment Details Card -->
           <tr>
             <td style="padding: 0 40px;">
               <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
@@ -221,7 +88,7 @@ async function sendConfirmationEmail(data) {
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Date:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${formatDate(data.date)}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${this.formatDate(data.date)}</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Time:</td>
@@ -239,16 +106,12 @@ async function sendConfirmationEmail(data) {
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Clinic:</td>
                         <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.clinicName}</td>
                       </tr>
-                      ${
-                        data.clinicAddress
-                          ? `
+                      ${data.clinicAddress ? `
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Address:</td>
                         <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.clinicAddress}</td>
                       </tr>
-                      `
-                          : ""
-                      }
+                      ` : ''}
                     </table>
                   </td>
                 </tr>
@@ -256,9 +119,8 @@ async function sendConfirmationEmail(data) {
             </td>
           </tr>
 
-          ${
-            data.amount
-              ? `
+          ${data.amount ? `
+          <!-- Payment Details -->
           <tr>
             <td style="padding: 20px 40px 0 40px;">
               <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #eff6ff; border-radius: 8px; border: 1px solid #dbeafe;">
@@ -273,7 +135,7 @@ async function sendConfirmationEmail(data) {
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Payment Method:</td>
-                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${data.paymentMethod || "N/A"}</td>
+                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${data.paymentMethod || 'N/A'}</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Status:</td>
@@ -285,10 +147,9 @@ async function sendConfirmationEmail(data) {
               </table>
             </td>
           </tr>
-          `
-              : ""
-          }
+          ` : ''}
 
+          <!-- Important Notes -->
           <tr>
             <td style="padding: 25px 40px;">
               <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px;">
@@ -296,13 +157,14 @@ async function sendConfirmationEmail(data) {
                 <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px; color: #92400e; line-height: 1.6;">
                   <li>Please arrive 10-15 minutes before your appointment</li>
                   <li>Bring a valid ID and insurance card (if applicable)</li>
-                  ${!isPaid ? "<li>Payment can be made at the clinic</li>" : ""}
+                  ${!isPaid ? '<li>Payment can be made at the clinic</li>' : ''}
                   <li>If you need to cancel or reschedule, please contact us at least 24 hours in advance</li>
                 </ul>
               </div>
             </td>
           </tr>
 
+          <!-- Contact Information -->
           <tr>
             <td style="padding: 0 40px 30px 40px;">
               <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.6;">
@@ -313,6 +175,7 @@ async function sendConfirmationEmail(data) {
             </td>
           </tr>
 
+          <!-- Footer -->
           <tr>
             <td style="background-color: #f9fafb; padding: 25px 40px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; font-size: 14px; color: #6b7280;">
@@ -331,25 +194,101 @@ async function sendConfirmationEmail(data) {
   </table>
 </body>
 </html>
-  `;
+    `;
+  }
 
-  try {
-    const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "Elite Medical <onboarding@resend.dev>",
-      to: data.patientEmail,
-      subject: `✅ Appointment Confirmed - ${formatDate(data.date)} at ${data.time}`,
-      html,
-    });
+  static async sendConfirmationEmail(data: AppointmentEmailData): Promise<boolean> {
+    try {
+      if (!process.env.RESEND_API_KEY) {
+        console.warn('⚠️ RESEND_API_KEY not configured. Email not sent.');
+        return false;
+      }
 
-    if (error) {
-      console.error("❌ Failed to send email:", error);
+      const resend = getResendClient();
+      const { data: emailData, error } = await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'Elite Medical <onboarding@resend.dev>',
+        to: data.patientEmail,
+        subject: `✅ Appointment Confirmed - ${this.formatDate(data.date)} at ${data.time}`,
+        html: this.generateConfirmationTemplate(data),
+      });
+
+      if (error) {
+        console.error('❌ Failed to send email:', error);
+        return false;
+      }
+
+      console.log('✅ Confirmation email sent to:', data.patientEmail, emailData?.id ? `(ID: ${emailData.id})` : '');
+      return true;
+    } catch (error) {
+      console.error('❌ Error sending email:', error);
       return false;
     }
+  }
 
-    console.log("✅ Confirmation email sent to:", data.patientEmail);
-    return true;
-  } catch (error) {
-    console.error("❌ Error sending email:", error);
-    return false;
+  static async sendCancellationEmail(data: {
+    patientName: string;
+    patientEmail: string;
+    appointmentId: number;
+    reason?: string;
+  }): Promise<boolean> {
+    try {
+      if (!process.env.RESEND_API_KEY) {
+        console.warn('⚠️ RESEND_API_KEY not configured. Email not sent.');
+        return false;
+      }
+
+      const resend = getResendClient();
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Appointment Cancelled</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 40px 0;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+      <h1 style="margin: 0; color: white; font-size: 28px;">❌ Appointment Cancelled</h1>
+    </div>
+    <div style="padding: 30px 40px;">
+      <p style="font-size: 16px; color: #374151;">Dear <strong>${data.patientName}</strong>,</p>
+      <p style="font-size: 16px; color: #374151; line-height: 1.6;">
+        Your appointment <strong>#${data.appointmentId}</strong> has been cancelled.
+      </p>
+      ${data.reason ? `
+      <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #7f1d1d;"><strong>Reason:</strong> ${data.reason}</p>
+      </div>
+      ` : ''}
+      <p style="font-size: 14px; color: #6b7280; line-height: 1.6;">
+        If this cancellation was unexpected or you wish to book a new appointment, please contact us or visit our website.
+      </p>
+    </div>
+    <div style="background-color: #f9fafb; padding: 25px 40px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+      <p style="margin: 0; font-size: 14px; color: #6b7280;">Elite Medical Booking System</p>
+    </div>
+  </div>
+</body>
+</html>
+      `;
+
+      const { data: emailData, error } = await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'Elite Medical <onboarding@resend.dev>',
+        to: data.patientEmail,
+        subject: `Appointment #${data.appointmentId} Cancelled`,
+        html,
+      });
+
+      if (error) {
+        console.error('❌ Failed to send cancellation email:', error);
+        return false;
+      }
+
+      console.log('✅ Cancellation email sent to:', data.patientEmail, emailData?.id ? `(ID: ${emailData.id})` : '');
+      return true;
+    } catch (error) {
+      console.error('❌ Error sending cancellation email:', error);
+      return false;
+    }
   }
 }

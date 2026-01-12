@@ -208,6 +208,31 @@ npm run backend:start:prod
 # Deploy to services like Railway, Render, or AWS
 ```
 
+## 📧 Email Notifications
+
+Automated email confirmations are sent to patients after booking appointments.
+
+**Setup:**
+
+1. Sign up for free at [Resend.com](https://resend.com)
+2. Get your API key
+3. Add to `.env`:
+   ```env
+   RESEND_API_KEY=re_your_api_key_here
+   RESEND_FROM_EMAIL="Elite Medical <onboarding@resend.dev>"
+   ```
+4. Restart json-server
+
+**Features:**
+
+- ✅ Professional HTML email templates
+- ✅ Appointment details with doctor/clinic info
+- ✅ Payment status (Paid/Pending)
+- ✅ Important reminders
+- ✅ Free tier: 3,000 emails/month
+
+See [EMAIL_SETUP.md](EMAIL_SETUP.md) for detailed instructions.
+
 ## 🤝 Contributing
 
 1. Fork the repository

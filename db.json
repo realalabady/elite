@@ -83,67 +83,80 @@
     {
       "id": 1,
       "name": "Orthopedic Surgery",
-      "description": "Comprehensive orthopedic care including joint replacement, fracture treatment, and sports medicine."
+      "description": "Comprehensive orthopedic care including joint replacement, fracture treatment, and sports medicine.",
+      "consultationFee": 150
     },
     {
       "id": 2,
       "name": "Spine Clinic",
-      "description": "Specialized treatment for back pain, herniated discs, and spinal deformities."
+      "description": "Specialized treatment for back pain, herniated discs, and spinal deformities.",
+      "consultationFee": 160
     },
     {
       "id": 3,
       "name": "Sports Medicine",
-      "description": "Treatment and prevention of sports-related injuries for athletes of all levels."
+      "description": "Treatment and prevention of sports-related injuries for athletes of all levels.",
+      "consultationFee": 140
     },
     {
       "id": 4,
       "name": "Obstetrics & Gynecology",
-      "description": "Complete women's health services including pregnancy care and gynecological treatments."
+      "description": "Complete women's health services including pregnancy care and gynecological treatments.",
+      "consultationFee": 170
     },
     {
       "id": 5,
       "name": "General & Bariatric Surgery",
-      "description": "Advanced surgical procedures including laparoscopic and weight loss surgeries."
+      "description": "Advanced surgical procedures including laparoscopic and weight loss surgeries.",
+      "consultationFee": 180
     },
     {
       "id": 6,
       "name": "Ophthalmology & LASIK",
-      "description": "Complete eye care from routine exams to advanced laser vision correction."
+      "description": "Complete eye care from routine exams to advanced laser vision correction.",
+      "consultationFee": 130
     },
     {
       "id": 7,
       "name": "Dental Clinic",
-      "description": "Comprehensive dental services from preventive care to cosmetic dentistry."
+      "description": "Comprehensive dental services from preventive care to cosmetic dentistry.",
+      "consultationFee": 120
     },
     {
       "id": 8,
       "name": "Dermatology & Laser",
-      "description": "Skin care treatments including laser therapy, cosmetic procedures, and medical dermatology."
+      "description": "Skin care treatments including laser therapy, cosmetic procedures, and medical dermatology.",
+      "consultationFee": 125
     },
     {
       "id": 9,
       "name": "Internal Medicine & Diabetes",
-      "description": "Management of chronic conditions including diabetes, hypertension, and endocrine disorders."
+      "description": "Management of chronic conditions including diabetes, hypertension, and endocrine disorders.",
+      "consultationFee": 135
     },
     {
       "id": 10,
       "name": "Pediatrics",
-      "description": "Complete healthcare for children from newborns to adolescents."
+      "description": "Complete healthcare for children from newborns to adolescents.",
+      "consultationFee": 110
     },
     {
       "id": 11,
       "name": "ENT (Ear, Nose & Throat)",
-      "description": "Treatment of ear, nose, and throat conditions including hearing loss and sinus problems."
+      "description": "Treatment of ear, nose, and throat conditions including hearing loss and sinus problems.",
+      "consultationFee": 140
     },
     {
       "id": 12,
       "name": "Gastroenterology",
-      "description": "Diagnosis and treatment of digestive system disorders."
+      "description": "Diagnosis and treatment of digestive system disorders.",
+      "consultationFee": 145
     },
     {
       "id": 13,
       "name": "Urology & Andrology",
-      "description": "Comprehensive urological care including kidney stones, prostate conditions, and men's health."
+      "description": "Comprehensive urological care including kidney stones, prostate conditions, and men's health.",
+      "consultationFee": 155
     }
   ],
   "services": [
@@ -822,7 +835,7 @@
       "status": "confirmed",
       "createdAt": "2026-02-05T10:27:46.281Z",
       "id": 12,
-      "arrived": null
+      "arrived": true
     },
     {
       "clinicId": 2,
@@ -847,10 +860,501 @@
       "patientName": "ahmed ali",
       "patientEmail": "fake@alabady@gmail.com",
       "patientPhone": "0534955842",
-      "status": "confirmed",
+      "status": "completed",
       "createdAt": "2026-01-10T21:53:28.137Z",
       "id": 14,
-      "arrived": true
+      "arrived": false
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-15",
+      "startTime": "10:00",
+      "patientName": "ahmed ali",
+      "patientEmail": "fake@gmail.com",
+      "patientPhone": "0534955842",
+      "status": "confirmed",
+      "createdAt": "2026-01-11T07:22:04.413Z",
+      "id": 15
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-20",
+      "startTime": "10:00",
+      "patientName": "ahmed ali",
+      "patientEmail": "fake@gmail.com",
+      "patientPhone": "0534955842",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:08:57.028Z",
+      "id": 16
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-16",
+      "startTime": "10:00",
+      "patientName": "gg gg",
+      "patientEmail": "gg@fgf.fg",
+      "patientPhone": "5",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:10:37.675Z",
+      "id": 17
+    },
+    {
+      "clinicId": 6,
+      "doctorId": 4,
+      "serviceId": 1,
+      "date": "2026-01-20",
+      "startTime": "12:00",
+      "patientName": "g g",
+      "patientEmail": "dg@dv.sdv",
+      "patientPhone": "4",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:14:36.113Z",
+      "id": 18
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "11:30",
+      "patientName": "g g",
+      "patientEmail": "g@g,g.g",
+      "patientPhone": "2",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:16:44.180Z",
+      "id": 19
+    },
+    {
+      "clinicId": 9,
+      "doctorId": 7,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "12:30",
+      "patientName": "g g",
+      "patientEmail": "g@gf.f",
+      "patientPhone": "1",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:20:55.156Z",
+      "id": 20
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "12:00",
+      "patientName": "f f",
+      "patientEmail": "f@.ff",
+      "patientPhone": "8",
+      "paymentMethod": "visa",
+      "paymentStatus": "paid",
+      "amount": 160,
+      "paymentId": "TXN-1768245818463-jfzj55lji",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:23:39.958Z",
+      "id": 21
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "12:30",
+      "patientName": "g g",
+      "patientEmail": "g@f.f",
+      "patientPhone": "8",
+      "paymentMethod": "visa",
+      "paymentStatus": "paid",
+      "amount": 160,
+      "paymentId": "TXN-1768246009544-yvblgt7zp",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:26:51.118Z",
+      "id": 22
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "17:30",
+      "patientName": "j j",
+      "patientEmail": "i@.l",
+      "patientPhone": "6",
+      "paymentMethod": "visa",
+      "paymentStatus": "pending",
+      "amount": 160,
+      "paymentId": "CASH-PAYMENT",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:28:18.427Z",
+      "id": 23
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-15",
+      "startTime": "15:00",
+      "patientName": "d d",
+      "patientEmail": "d@d.d",
+      "patientPhone": "666",
+      "paymentMethod": "cash",
+      "paymentStatus": "pending",
+      "amount": 160,
+      "paymentId": "CASH-PAYMENT",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:30:08.375Z",
+      "id": 24
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-13",
+      "startTime": "14:30",
+      "patientName": "ahmed alabady",
+      "patientEmail": "f@f.q`",
+      "patientPhone": "d",
+      "paymentMethod": "cash",
+      "paymentStatus": "pending",
+      "amount": 160,
+      "paymentId": "CASH-PAYMENT",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T19:54:41.352Z",
+      "id": 25
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "17:00",
+      "patientName": "ahmed ali",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "3",
+      "paymentMethod": "visa",
+      "amount": 160,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T21:21:28.219Z",
+      "id": 26
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "16:30",
+      "patientName": "f f",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "2",
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "amount": 160,
+      "paymentId": "TXN-1768252888162-uzru3uv1v",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T21:22:55.498Z",
+      "id": 27
+    },
+    {
+      "clinicId": 5,
+      "doctorId": 3,
+      "serviceId": 1,
+      "date": "2026-01-14",
+      "startTime": "15:30",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "3",
+      "paymentMethod": "visa",
+      "paymentStatus": "failed",
+      "amount": 180,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T21:28:05.785Z",
+      "id": 28
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-20",
+      "startTime": "10:30",
+      "patientName": "h h",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "3",
+      "paymentMethod": "visa",
+      "amount": 160,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T21:54:03.213Z",
+      "id": 29
+    },
+    {
+      "clinicId": 1,
+      "doctorId": 1,
+      "serviceId": 1,
+      "date": "2026-01-15",
+      "startTime": "10:00",
+      "patientName": "Test User",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "+1234567890",
+      "paymentMethod": "visa",
+      "paymentStatus": "paid",
+      "amount": 150,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T22:01:06.684Z",
+      "id": 30
+    },
+    {
+      "clinicId": 1,
+      "doctorId": 1,
+      "serviceId": 1,
+      "date": "2026-01-16",
+      "startTime": "14:00",
+      "patientName": "Test Email",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "+1234567890",
+      "paymentMethod": "apple-pay",
+      "paymentStatus": "paid",
+      "amount": 175,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T22:06:49.350Z",
+      "id": 31
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "11:00",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "7",
+      "paymentMethod": "visa",
+      "paymentStatus": "failed",
+      "amount": 160,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T23:04:02.299Z",
+      "id": 32
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "16:00",
+      "patientName": "h g",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "2",
+      "paymentMethod": "visa",
+      "amount": 160,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T23:08:12.096Z",
+      "id": 33
+    },
+    {
+      "clinicId": 1,
+      "doctorId": 1,
+      "serviceId": 1,
+      "date": "2026-01-20",
+      "startTime": "11:00",
+      "patientName": "Website Test",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "+1234567890",
+      "paymentMethod": "visa",
+      "paymentStatus": "paid",
+      "amount": 150,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T23:10:45.128Z",
+      "id": 34
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-21",
+      "startTime": "10:30",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "2",
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "amount": 160,
+      "paymentId": "TXN-1768259292039-oxjvn7vls",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T23:13:33.687Z",
+      "id": 35
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-22",
+      "startTime": "10:00",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "5",
+      "paymentMethod": "visa",
+      "amount": 160,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T23:17:42.445Z",
+      "id": 36
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-13",
+      "startTime": "15:00",
+      "patientName": "f f",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "1",
+      "paymentMethod": "visa",
+      "amount": 160,
+      "status": "confirmed",
+      "createdAt": "2026-01-12T23:22:19.312Z",
+      "id": 37
+    },
+    {
+      "clinicId": 2,
+      "doctorId": 5,
+      "serviceId": 1,
+      "date": "2026-01-20",
+      "startTime": "12:00",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "patientPhone": "0534955842",
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "amount": 160,
+      "paymentId": "TXN-1768260139264-bnr13xf38",
+      "status": "confirmed",
+      "createdAt": "2026-01-12T23:33:42.502Z",
+      "id": 38
+    }
+  ],
+  "payments": [
+    {
+      "id": 1,
+      "appointmentId": 1,
+      "patientName": "s s",
+      "patientEmail": "fakea@fw.cac",
+      "amount": 150,
+      "paymentMethod": "visa",
+      "paymentStatus": "failed",
+      "transactionId": "TXN_001",
+      "createdAt": "2026-01-09T10:00:00Z",
+      "note": "Card declined"
+    },
+    {
+      "appointmentId": 0,
+      "amount": 160,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "transactionId": "TXN-1768245818463-jfzj55lji",
+      "createdAt": "2026-01-12T19:23:38.463Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "f f",
+      "patientEmail": "f@.ff",
+      "id": 6
+    },
+    {
+      "appointmentId": 0,
+      "amount": 160,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "transactionId": "TXN-1768246009544-yvblgt7zp",
+      "createdAt": "2026-01-12T19:26:49.544Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "g g",
+      "patientEmail": "g@f.f",
+      "id": 7
+    },
+    {
+      "appointmentId": 0,
+      "amount": 160,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "transactionId": "TXN-1768252888162-uzru3uv1v",
+      "createdAt": "2026-01-12T21:21:28.162Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "ahmed ali",
+      "patientEmail": "fakealabady@gmail.com",
+      "id": 8
+    },
+    {
+      "appointmentId": 0,
+      "amount": 180,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "failed",
+      "transactionId": "TXN-1768253270389-cq1ya3uav",
+      "createdAt": "2026-01-12T21:27:50.389Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "id": 9
+    },
+    {
+      "appointmentId": 0,
+      "amount": 180,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "transactionId": "TXN-1768253285733-kfdr78jns",
+      "createdAt": "2026-01-12T21:28:05.733Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "id": 10
+    },
+    {
+      "appointmentId": 0,
+      "amount": 160,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "failed",
+      "transactionId": "TXN-1768259038117-q5ss5pq6o",
+      "createdAt": "2026-01-12T23:03:58.117Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "id": 11
+    },
+    {
+      "appointmentId": 0,
+      "amount": 160,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "transactionId": "TXN-1768259292039-oxjvn7vls",
+      "createdAt": "2026-01-12T23:08:12.039Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "h g",
+      "patientEmail": "fakealabady@gmail.com",
+      "id": 12
+    },
+    {
+      "appointmentId": 0,
+      "amount": 160,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "transactionId": "TXN-1768260139264-bnr13xf38",
+      "createdAt": "2026-01-12T23:22:19.264Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "f f",
+      "patientEmail": "fakealabady@gmail.com",
+      "id": 13
+    },
+    {
+      "appointmentId": 0,
+      "amount": 160,
+      "paymentMethod": "apple_pay",
+      "paymentStatus": "paid",
+      "transactionId": "TXN-1768260822448-ienloeqg6",
+      "createdAt": "2026-01-12T23:33:42.448Z",
+      "note": "Mock payment - apple_pay ending in 1234",
+      "patientName": "g g",
+      "patientEmail": "fakealabady@gmail.com",
+      "id": 14
     }
   ]
 }

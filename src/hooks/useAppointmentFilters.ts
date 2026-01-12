@@ -40,24 +40,29 @@ export const useAppointmentFilters = (appointments: Appointment[]) => {
   };
 
   const filteredAppointments = useMemo(() => {
-    return appointments.filter((apt) => {
-      const matchesArchived = viewArchived
-        ? apt.archived === true
-        : apt.archived !== true;
+    return appointments
+      .filter((apt) => {
+        const matchesArchived = viewArchived
+          ? apt.archived === true
+          : apt.archived !== true;
 
-      const matchesSearch =
-        searchQuery === "" ||
-        apt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        apt.patientEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        apt.patientPhone?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch =
+          searchQuery === "" ||
+          apt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          apt.patientEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          apt.patientPhone?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "all" || apt.status === statusFilter;
+        const matchesStatus =
+          statusFilter === "all" || apt.status === statusFilter;
 
-      const matchesDate = matchesDateFilter(new Date(apt.date));
+        const matchesDate = matchesDateFilter(new Date(apt.date));
 
-      return matchesArchived && matchesSearch && matchesStatus && matchesDate;
-    });
+        return matchesArchived && matchesSearch && matchesStatus && matchesDate;
+      })
+      .sort((a, b) => {
+        // Sort by ID in descending order (newest first)
+        return (b.id || 0) - (a.id || 0);
+      });
   }, [
     appointments,
     searchQuery,

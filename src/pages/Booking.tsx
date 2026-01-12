@@ -11,6 +11,7 @@ import {
   User,
   Clock,
   Building2,
+  CreditCard,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FadeIn } from "@/components/animations/FadeIn";
+import { PaymentForm } from "@/components/booking/PaymentForm";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { bookingApi, Clinic, Doctor, Service } from "@/services/api";
@@ -82,6 +84,13 @@ const Booking = () => {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<
+    "apple_pay" | "visa" | "mastercard" | "debit"
+  >("visa");
+  const [paymentStatus, setPaymentStatus] = useState<
+    "pending" | "paid" | "failed" | null
+  >(null);
+  const [paymentTransactionId, setPaymentTransactionId] = useState<string>("");
 
   // Data state
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -277,7 +286,12 @@ const Booking = () => {
         label: lang === "ar" ? "التحقق من OTP" : "OTP Verification",
         icon: Check,
       },
-      { num: 6, label: t("booking.step5"), icon: Check },
+      {
+        num: 6,
+        label: lang === "ar" ? "الدفع" : "Payment",
+        icon: CreditCard,
+      },
+      { num: 7, label: t("booking.step5"), icon: Check },
     ],
     [t, lang]
   );
@@ -314,19 +328,23 @@ const Booking = () => {
       });
       setStep(3);
     } else if (step === 4) {
-      // Validate form and send OTP before booking
+      // Validate form and send OTP before moving to OTP step
       if (validateFormAndSetErrors()) {
+        // Send OTP after validating patient info
         const sent = await sendOTP();
         if (sent) {
           setStep(5); // Move to OTP verification step
         }
       }
     } else if (step === 5) {
-      // Verify OTP before booking
+      // Verify OTP before proceeding to payment
       const verified = await verifyOTP();
       if (verified) {
-        handleBooking();
+        setStep(6); // Move to payment step
       }
+    } else if (step === 6) {
+      // Payment step - form handles its own submission
+      // This is just a placeholder
     } else if (step === 3) {
       // Before advancing from date/time selection, ensure selected time is actually available.
       const proceed = async () => {
@@ -343,7 +361,7 @@ const Booking = () => {
           !selectedDoctor ||
           !selectedService
         ) {
-          setStep((s) => Math.min(s + 1, 5));
+          setStep((s) => Math.min(s + 1, 6));
           return;
         }
 
@@ -378,7 +396,7 @@ const Booking = () => {
       // run the check
       proceed();
     } else {
-      setStep((s) => Math.min(s + 1, 5));
+      setStep((s) => Math.min(s + 1, 6));
     }
   };
   const prevStep = () => {
@@ -427,6 +445,8 @@ const Booking = () => {
         return true; // Always allow, validation happens on click
       case 5:
         return otp.length === 5; // OTP must be 5 digits
+      case 6:
+        return true; // Payment form handles itself
       default:
         return true;
     }
@@ -748,6 +768,10 @@ const Booking = () => {
         patientName: `${formData.firstName} ${formData.lastName}`,
         patientEmail: formData.email,
         patientPhone: formData.phone,
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentStatus || undefined,
+        amount: selectedClinicData?.consultationFee,
+        paymentId: paymentTransactionId || undefined,
       });
       // On success, optimistically remove the booked time from local slots
       // then refresh authoritative availability from the server so the slot
@@ -774,7 +798,7 @@ const Booking = () => {
         console.warn("Failed to refresh slots after booking:", err);
       }
 
-      setStep(6);
+      setStep(7);
       toast({
         title: "Success",
         description: "Appointment booked successfully",
@@ -1251,7 +1275,7 @@ const Booking = () => {
             {/* Step 5: OTP Verification */}
             {step === 5 && (
               <motion.div
-                key="step5"
+                key="step5-otp"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -1310,10 +1334,58 @@ const Booking = () => {
               </motion.div>
             )}
 
-            {/* Step 6: Confirmation */}
+            {/* Step 6: Payment */}
             {step === 6 && (
               <motion.div
-                key="step5"
+                key="step5-payment"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="max-w-md mx-auto"
+              >
+                <h2 className="font-display text-2xl font-bold mb-2 text-center">
+                  {lang === "ar" ? "الدفع" : "Payment"}
+                </h2>
+                <p className="text-muted-foreground text-center mb-6">
+                  {lang === "ar"
+                    ? "الرجاء إدخال بيانات الدفع لتأكيد الحجز"
+                    : "Please enter your payment details to confirm the booking"}
+                </p>
+
+                <PaymentForm
+                  amount={selectedClinicData?.consultationFee || 0}
+                  appointmentId={0}
+                  patientName={`${formData.firstName} ${formData.lastName}`}
+                  patientEmail={formData.email}
+                  clinicId={selectedClinic || 0}
+                  onSuccess={(transactionId, method) => {
+                    setPaymentTransactionId(transactionId);
+                    setPaymentMethod(method as any);
+                    // Set status based on whether it's cash or online payment
+                    if (method === 'cash') {
+                      setPaymentStatus('pending'); // Cash = not paid yet
+                    } else {
+                      setPaymentStatus('paid'); // Online = paid
+                    }
+                    // After payment, create the booking
+                    handleBooking();
+                  }}
+                  onError={(error) => {
+                    setPaymentStatus("failed");
+                    toast({
+                      title: lang === "ar" ? "خطأ في الدفع" : "Payment Error",
+                      description: error,
+                      variant: "destructive",
+                    });
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {/* Step 7: Confirmation */}
+            {step === 7 && (
+              <motion.div
+                key="step7-confirmation"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center"
@@ -1378,6 +1450,14 @@ const Booking = () => {
                       </span>
                       <span className="font-medium">
                         {formData.firstName} {formData.lastName}
+                      </span>
+                    </div>
+                    <div className="border-t border-border pt-3 mt-3 flex justify-between">
+                      <span className="text-muted-foreground font-semibold">
+                        {lang === "ar" ? "رسوم الاستشارة" : "Consultation Fee"}:
+                      </span>
+                      <span className="font-bold text-primary">
+                        ${selectedClinicData?.consultationFee || 0}
                       </span>
                     </div>
                   </div>

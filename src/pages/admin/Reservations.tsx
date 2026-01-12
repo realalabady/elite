@@ -555,6 +555,7 @@ const AdminReservations = ({
                         </div>
                       </TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Paid</TableHead>
                       <TableHead>Arrival</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -651,6 +652,17 @@ const AdminReservations = ({
                           <TableCell>{formatDate(apt.date)}</TableCell>
                           <TableCell>{apt.startTime}</TableCell>
                           <TableCell>{renderStatusBadge(apt.status)}</TableCell>
+                          <TableCell>
+                            {apt.paymentMethod && apt.paymentMethod !== 'cash' ? (
+                              <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                                Yes
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-red-50 text-red-700 border-red-200">
+                                No
+                              </Badge>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {renderArrivalBadge(apt.arrived)}
                           </TableCell>
