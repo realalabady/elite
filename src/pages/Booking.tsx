@@ -1362,10 +1362,10 @@ const Booking = () => {
                     setPaymentTransactionId(transactionId);
                     setPaymentMethod(method as any);
                     // Set status based on whether it's cash or online payment
-                    if (method === 'cash') {
-                      setPaymentStatus('pending'); // Cash = not paid yet
+                    if (method === "cash") {
+                      setPaymentStatus("pending"); // Cash = not paid yet
                     } else {
-                      setPaymentStatus('paid'); // Online = paid
+                      setPaymentStatus("paid"); // Online = paid
                     }
                     // After payment, create the booking
                     handleBooking();

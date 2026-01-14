@@ -37,7 +37,8 @@ module.exports = [
             const db = JSON.parse(fs.readFileSync(dbPath, "utf8"));
 
             // Get appointment details
-            const appointment = typeof data === "string" ? JSON.parse(data) : data;
+            const appointment =
+              typeof data === "string" ? JSON.parse(data) : data;
             const clinic = db.clinics.find((c) => c.id == req.body.clinicId);
             const doctor = db.doctors.find((d) => d.id == req.body.doctorId);
             const service = db.services.find((s) => s.id == req.body.serviceId);
@@ -200,7 +201,9 @@ async function sendConfirmationEmail(data) {
 
           <tr>
             <td style="padding: 30px 40px 20px 40px;">
-              <p style="margin: 0; font-size: 16px; color: #374151;">Dear <strong>${data.patientName}</strong>,</p>
+              <p style="margin: 0; font-size: 16px; color: #374151;">Dear <strong>${
+                data.patientName
+              }</strong>,</p>
               <p style="margin: 15px 0 0 0; font-size: 16px; color: #374151; line-height: 1.6;">
                 Thank you for booking with us! Your appointment has been confirmed. Please find the details below:
               </p>
@@ -217,27 +220,39 @@ async function sendConfirmationEmail(data) {
                     <table role="presentation" style="width: 100%; border-collapse: collapse;">
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280; width: 140px;">Appointment ID:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">#${data.appointmentId}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">#${
+                          data.appointmentId
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Date:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${formatDate(data.date)}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${formatDate(
+                          data.date
+                        )}</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Time:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${data.time}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${
+                          data.time
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Doctor:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">Dr. ${data.doctorName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">Dr. ${
+                          data.doctorName
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Service:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.serviceName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${
+                          data.serviceName
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Clinic:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.clinicName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${
+                          data.clinicName
+                        }</td>
                       </tr>
                       ${
                         data.clinicAddress
@@ -269,11 +284,15 @@ async function sendConfirmationEmail(data) {
                     <table role="presentation" style="width: 100%; border-collapse: collapse;">
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280; width: 140px;">Amount:</td>
-                        <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">$${data.amount.toFixed(2)}</td>
+                        <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">$${data.amount.toFixed(
+                          2
+                        )}</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Payment Method:</td>
-                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${data.paymentMethod || "N/A"}</td>
+                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${
+                          data.paymentMethod || "N/A"
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Status:</td>
@@ -335,9 +354,13 @@ async function sendConfirmationEmail(data) {
 
   try {
     const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "Elite Medical <onboarding@resend.dev>",
+      from:
+        process.env.RESEND_FROM_EMAIL ||
+        "Elite Medical <onboarding@resend.dev>",
       to: data.patientEmail,
-      subject: `✅ Appointment Confirmed - ${formatDate(data.date)} at ${data.time}`,
+      subject: `✅ Appointment Confirmed - ${formatDate(data.date)} at ${
+        data.time
+      }`,
       html,
     });
 

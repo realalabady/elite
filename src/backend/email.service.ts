@@ -1,10 +1,10 @@
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 // Create Resend client lazily to ensure env vars are loaded
 function getResendClient(): Resend {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    throw new Error('RESEND_API_KEY is not configured');
+    throw new Error("RESEND_API_KEY is not configured");
   }
   return new Resend(apiKey);
 }
@@ -27,16 +27,18 @@ interface AppointmentEmailData {
 export class EmailService {
   private static formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   }
 
-  private static generateConfirmationTemplate(data: AppointmentEmailData): string {
-    const isPaid = data.paymentStatus === 'paid';
+  private static generateConfirmationTemplate(
+    data: AppointmentEmailData
+  ): string {
+    const isPaid = data.paymentStatus === "paid";
     const paymentBadge = isPaid
       ? '<span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 4px; font-size: 14px;">Paid</span>'
       : '<span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 4px; font-size: 14px;">Payment Pending</span>';
@@ -59,16 +61,18 @@ export class EmailService {
           <tr>
             <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
               <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;">✅ Appointment Confirmed</h1>
-              <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">Your booking has been successfully confirmed</p>
+              <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">Your booking with <b>${data.clinicName}</b> has been successfully confirmed</p>
             </td>
           </tr>
 
           <!-- Greeting -->
           <tr>
             <td style="padding: 30px 40px 20px 40px;">
-              <p style="margin: 0; font-size: 16px; color: #374151;">Dear <strong>${data.patientName}</strong>,</p>
+              <p style="margin: 0; font-size: 16px; color: #374151;">Dear <strong>${
+                data.patientName
+              }</strong>,</p>
               <p style="margin: 15px 0 0 0; font-size: 16px; color: #374151; line-height: 1.6;">
-                Thank you for booking with us! Your appointment has been confirmed. Please find the details below:
+                Thank you for booking with <b>${data.clinicName}</b>! Your appointment has been confirmed. Please find the details below:
               </p>
             </td>
           </tr>
@@ -84,34 +88,50 @@ export class EmailService {
                     <table role="presentation" style="width: 100%; border-collapse: collapse;">
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280; width: 140px;">Appointment ID:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">#${data.appointmentId}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">#${
+                          data.appointmentId
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Date:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${this.formatDate(data.date)}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${this.formatDate(
+                          data.date
+                        )}</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Time:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${data.time}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${
+                          data.time
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Doctor:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">Dr. ${data.doctorName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">Dr. ${
+                          data.doctorName
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Service:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.serviceName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${
+                          data.serviceName
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Clinic:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.clinicName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${
+                          data.clinicName
+                        }</td>
                       </tr>
-                      ${data.clinicAddress ? `
+                      ${
+                        data.clinicAddress
+                          ? `
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Address:</td>
                         <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.clinicAddress}</td>
                       </tr>
-                      ` : ''}
+                      `
+                          : ""
+                      }
                     </table>
                   </td>
                 </tr>
@@ -119,7 +139,9 @@ export class EmailService {
             </td>
           </tr>
 
-          ${data.amount ? `
+          ${
+            data.amount
+              ? `
           <!-- Payment Details -->
           <tr>
             <td style="padding: 20px 40px 0 40px;">
@@ -131,11 +153,15 @@ export class EmailService {
                     <table role="presentation" style="width: 100%; border-collapse: collapse;">
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280; width: 140px;">Amount:</td>
-                        <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">$${data.amount.toFixed(2)}</td>
+                        <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">$${data.amount.toFixed(
+                          2
+                        )}</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Payment Method:</td>
-                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${data.paymentMethod || 'N/A'}</td>
+                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${
+                          data.paymentMethod || "N/A"
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Status:</td>
@@ -147,7 +173,9 @@ export class EmailService {
               </table>
             </td>
           </tr>
-          ` : ''}
+          `
+              : ""
+          }
 
           <!-- Important Notes -->
           <tr>
@@ -157,7 +185,7 @@ export class EmailService {
                 <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px; color: #92400e; line-height: 1.6;">
                   <li>Please arrive 10-15 minutes before your appointment</li>
                   <li>Bring a valid ID and insurance card (if applicable)</li>
-                  ${!isPaid ? '<li>Payment can be made at the clinic</li>' : ''}
+                  ${!isPaid ? "<li>Payment can be made at the clinic</li>" : ""}
                   <li>If you need to cancel or reschedule, please contact us at least 24 hours in advance</li>
                 </ul>
               </div>
@@ -168,9 +196,7 @@ export class EmailService {
           <tr>
             <td style="padding: 0 40px 30px 40px;">
               <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.6;">
-                If you have any questions or need to make changes to your appointment, please contact us at:<br>
-                <strong style="color: #111827;">Email:</strong> <a href="mailto:support@elitemedical.com" style="color: #667eea; text-decoration: none;">support@elitemedical.com</a><br>
-                <strong style="color: #111827;">Phone:</strong> <a href="tel:+1234567890" style="color: #667eea; text-decoration: none;">+1 (234) 567-890</a>
+                If you have any questions or need to make changes to your appointment, please contact <b>${data.clinicName}</b> directly.
               </p>
             </td>
           </tr>
@@ -179,7 +205,7 @@ export class EmailService {
           <tr>
             <td style="background-color: #f9fafb; padding: 25px 40px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; font-size: 14px; color: #6b7280;">
-                Thank you for choosing Elite Medical<br>
+                Thank you for choosing <b>${data.clinicName}</b><br>
                 We look forward to seeing you!
               </p>
               <p style="margin: 15px 0 0 0; font-size: 12px; color: #9ca3af;">
@@ -197,30 +223,40 @@ export class EmailService {
     `;
   }
 
-  static async sendConfirmationEmail(data: AppointmentEmailData): Promise<boolean> {
+  static async sendConfirmationEmail(
+    data: AppointmentEmailData
+  ): Promise<boolean> {
     try {
       if (!process.env.RESEND_API_KEY) {
-        console.warn('⚠️ RESEND_API_KEY not configured. Email not sent.');
+        console.warn("⚠️ RESEND_API_KEY not configured. Email not sent.");
         return false;
       }
 
       const resend = getResendClient();
       const { data: emailData, error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'Elite Medical <onboarding@resend.dev>',
+        from:
+          process.env.RESEND_FROM_EMAIL ||
+          "Appointment System <onboarding@resend.dev>",
         to: data.patientEmail,
-        subject: `✅ Appointment Confirmed - ${this.formatDate(data.date)} at ${data.time}`,
+        subject: `✅ Appointment Confirmed - ${this.formatDate(data.date)} at ${
+          data.time
+        }`,
         html: this.generateConfirmationTemplate(data),
       });
 
       if (error) {
-        console.error('❌ Failed to send email:', error);
+        console.error("❌ Failed to send email:", error);
         return false;
       }
 
-      console.log('✅ Confirmation email sent to:', data.patientEmail, emailData?.id ? `(ID: ${emailData.id})` : '');
+      console.log(
+        "✅ Confirmation email sent to:",
+        data.patientEmail,
+        emailData?.id ? `(ID: ${emailData.id})` : ""
+      );
       return true;
     } catch (error) {
-      console.error('❌ Error sending email:', error);
+      console.error("❌ Error sending email:", error);
       return false;
     }
   }
@@ -233,7 +269,7 @@ export class EmailService {
   }): Promise<boolean> {
     try {
       if (!process.env.RESEND_API_KEY) {
-        console.warn('⚠️ RESEND_API_KEY not configured. Email not sent.');
+        console.warn("⚠️ RESEND_API_KEY not configured. Email not sent.");
         return false;
       }
 
@@ -251,21 +287,29 @@ export class EmailService {
       <h1 style="margin: 0; color: white; font-size: 28px;">❌ Appointment Cancelled</h1>
     </div>
     <div style="padding: 30px 40px;">
-      <p style="font-size: 16px; color: #374151;">Dear <strong>${data.patientName}</strong>,</p>
+      <p style="font-size: 16px; color: #374151;">Dear <strong>${
+        data.patientName
+      }</strong>,</p>
       <p style="font-size: 16px; color: #374151; line-height: 1.6;">
-        Your appointment <strong>#${data.appointmentId}</strong> has been cancelled.
+        Your appointment <strong>#${
+          data.appointmentId
+        }</strong> has been cancelled.
       </p>
-      ${data.reason ? `
+      ${
+        data.reason
+          ? `
       <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
         <p style="margin: 0; font-size: 14px; color: #7f1d1d;"><strong>Reason:</strong> ${data.reason}</p>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
       <p style="font-size: 14px; color: #6b7280; line-height: 1.6;">
         If this cancellation was unexpected or you wish to book a new appointment, please contact us or visit our website.
       </p>
     </div>
     <div style="background-color: #f9fafb; padding: 25px 40px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
-      <p style="margin: 0; font-size: 14px; color: #6b7280;">Elite Medical Booking System</p>
+      <p style="margin: 0; font-size: 14px; color: #6b7280;">Appointment Booking System</p>
     </div>
   </div>
 </body>
@@ -273,21 +317,27 @@ export class EmailService {
       `;
 
       const { data: emailData, error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'Elite Medical <onboarding@resend.dev>',
+        from:
+          process.env.RESEND_FROM_EMAIL ||
+          "Appointment System <onboarding@resend.dev>",
         to: data.patientEmail,
         subject: `Appointment #${data.appointmentId} Cancelled`,
         html,
       });
 
       if (error) {
-        console.error('❌ Failed to send cancellation email:', error);
+        console.error("❌ Failed to send cancellation email:", error);
         return false;
       }
 
-      console.log('✅ Cancellation email sent to:', data.patientEmail, emailData?.id ? `(ID: ${emailData.id})` : '');
+      console.log(
+        "✅ Cancellation email sent to:",
+        data.patientEmail,
+        emailData?.id ? `(ID: ${emailData.id})` : ""
+      );
       return true;
     } catch (error) {
-      console.error('❌ Error sending cancellation email:', error);
+      console.error("❌ Error sending cancellation email:", error);
       return false;
     }
   }

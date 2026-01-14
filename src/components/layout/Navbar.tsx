@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
 
 const navLinks = [
   { path: "/", key: "nav.home" },
@@ -71,18 +70,18 @@ export const Navbar = () => {
         )}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-center h-20 gap-8">
             {/* Logo */}
-            <Link to="/" className="flex items-center shrink-0">
+            {/* <Link to="/" className="flex items-center shrink-0">
               <img
                 src={logo}
                 alt="Elite Specialist Clinics"
                 className="h-14 w-auto"
               />
-            </Link>
+            </Link> */}
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-6">
+            <nav className="hidden lg:flex items-center gap-6 justify-center">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
@@ -100,7 +99,7 @@ export const Navbar = () => {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-3 shrink-0 justify-center">
               <Button
                 variant="ghost"
                 size="sm"
@@ -186,7 +185,7 @@ export const Navbar = () => {
             >
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b border-border">
-                  <img src={logo} alt="Elite Clinics" className="h-10 w-auto" />
+                  {/* <img src={logo} alt="Elite Clinics" className="h-10 w-auto" /> */}
                   <Button
                     variant="ghost"
                     size="icon"

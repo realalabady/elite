@@ -48,15 +48,17 @@ async function sendConfirmationEmail(data, db) {
           <tr>
             <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
               <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;">✅ Appointment Confirmed</h1>
-              <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">Your booking has been successfully confirmed</p>
+              <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">Your booking with <b>${data.clinicName}</b> has been successfully confirmed</p>
             </td>
           </tr>
 
           <tr>
             <td style="padding: 30px 40px 20px 40px;">
-              <p style="margin: 0; font-size: 16px; color: #374151;">Dear <strong>${data.patientName}</strong>,</p>
+              <p style="margin: 0; font-size: 16px; color: #374151;">Dear <strong>${
+                data.patientName
+              }</strong>,</p>
               <p style="margin: 15px 0 0 0; font-size: 16px; color: #374151; line-height: 1.6;">
-                Thank you for booking with Elite Medical! Your appointment has been confirmed.
+                Thank you for booking with <b>${data.clinicName}</b>! Your appointment has been confirmed. Please find the details below:
               </p>
             </td>
           </tr>
@@ -71,34 +73,50 @@ async function sendConfirmationEmail(data, db) {
                     <table role="presentation" style="width: 100%; border-collapse: collapse;">
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280; width: 140px;">Appointment ID:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">#${data.appointmentId}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">#${
+                          data.appointmentId
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Date:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${formatDate(data.date)}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${formatDate(
+                          data.date
+                        )}</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Time:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${data.time}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">${
+                          data.time
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Doctor:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">Dr. ${data.doctorName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600;">Dr. ${
+                          data.doctorName
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Service:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.serviceName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${
+                          data.serviceName
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Clinic:</td>
-                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.clinicName}</td>
+                        <td style="padding: 8px 0; font-size: 14px; color: #111827;">${
+                          data.clinicName
+                        }</td>
                       </tr>
-                      ${data.clinicAddress ? `
+                      ${
+                        data.clinicAddress
+                          ? `
                       <tr>
                         <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Address:</td>
                         <td style="padding: 8px 0; font-size: 14px; color: #111827;">${data.clinicAddress}</td>
                       </tr>
-                      ` : ""}
+                      `
+                          : ""
+                      }
                     </table>
                   </td>
                 </tr>
@@ -106,7 +124,9 @@ async function sendConfirmationEmail(data, db) {
             </td>
           </tr>
 
-          ${data.amount ? `
+          ${
+            data.amount
+              ? `
           <tr>
             <td style="padding: 20px 40px 0 40px;">
               <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #eff6ff; border-radius: 8px; border: 1px solid #dbeafe;">
@@ -117,11 +137,15 @@ async function sendConfirmationEmail(data, db) {
                     <table role="presentation" style="width: 100%; border-collapse: collapse;">
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280; width: 140px;">Amount:</td>
-                        <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">$${Number(data.amount).toFixed(2)}</td>
+                        <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">$${Number(
+                          data.amount
+                        ).toFixed(2)}</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Payment Method:</td>
-                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${data.paymentMethod || "N/A"}</td>
+                        <td style="padding: 6px 0; font-size: 14px; color: #111827;">${
+                          data.paymentMethod || "N/A"
+                        }</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Status:</td>
@@ -133,7 +157,9 @@ async function sendConfirmationEmail(data, db) {
               </table>
             </td>
           </tr>
-          ` : ""}
+          `
+              : ""
+          }
 
           <tr>
             <td style="padding: 25px 40px;">
@@ -142,7 +168,11 @@ async function sendConfirmationEmail(data, db) {
                 <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px; color: #92400e; line-height: 1.6;">
                   <li>Please arrive 10-15 minutes before your appointment</li>
                   <li>Bring a valid ID and insurance card (if applicable)</li>
-                  ${!isPaid ? "<li>Payment will be collected at the clinic</li>" : ""}
+                  ${
+                    !isPaid
+                      ? "<li>Payment will be collected at the clinic</li>"
+                      : ""
+                  }
                   <li>To cancel or reschedule, contact us at least 24 hours in advance</li>
                 </ul>
               </div>
@@ -152,9 +182,7 @@ async function sendConfirmationEmail(data, db) {
           <tr>
             <td style="padding: 0 40px 30px 40px;">
               <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.6;">
-                Questions? Contact us at:<br>
-                <strong style="color: #111827;">Email:</strong> <a href="mailto:support@elitemedical.com" style="color: #667eea;">support@elitemedical.com</a><br>
-                <strong style="color: #111827;">Phone:</strong> <a href="tel:+1234567890" style="color: #667eea;">+1 (234) 567-890</a>
+                If you have any questions or need to make changes to your appointment, please contact <b>${data.clinicName}</b> directly.
               </p>
             </td>
           </tr>
@@ -162,8 +190,11 @@ async function sendConfirmationEmail(data, db) {
           <tr>
             <td style="background-color: #f9fafb; padding: 25px 40px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; font-size: 14px; color: #6b7280;">
-                Thank you for choosing <strong>Elite Medical</strong><br>
+                Thank you for choosing <b>${data.clinicName}</b><br>
                 We look forward to seeing you!
+              </p>
+              <p style="margin: 15px 0 0 0; font-size: 12px; color: #9ca3af;">
+                This is an automated message, please do not reply to this email.
               </p>
             </td>
           </tr>
@@ -178,9 +209,13 @@ async function sendConfirmationEmail(data, db) {
 
   try {
     const { data: result, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "Elite Medical <onboarding@resend.dev>",
+      from:
+        process.env.RESEND_FROM_EMAIL ||
+        "Appointment System <onboarding@resend.dev>",
       to: [data.patientEmail],
-      subject: `✅ Appointment Confirmed - ${formatDate(data.date)} at ${data.time}`,
+      subject: `✅ Appointment Confirmed - ${formatDate(data.date)} at ${
+        data.time
+      }`,
       html,
     });
 
@@ -202,7 +237,7 @@ module.exports = (req, res, next) => {
   // Handle POST requests to /appointments - set default status and send email
   if (req.method === "POST" && req.url === "/appointments") {
     console.log("📧 New appointment POST received:", req.body?.patientEmail);
-    
+
     if (!req.body.status) {
       req.body.status = "confirmed";
     }
@@ -223,11 +258,18 @@ module.exports = (req, res, next) => {
     };
 
     // Hook into response finish event
-    res.on('finish', async () => {
+    res.on("finish", async () => {
       console.log("📧 Response finished, status:", res.statusCode);
-      
-      if (res.statusCode === 201 && process.env.RESEND_API_KEY && emailData.patientEmail) {
-        console.log("📧 Sending confirmation email to:", emailData.patientEmail);
+
+      if (
+        res.statusCode === 201 &&
+        process.env.RESEND_API_KEY &&
+        emailData.patientEmail
+      ) {
+        console.log(
+          "📧 Sending confirmation email to:",
+          emailData.patientEmail
+        );
         try {
           const dbPath = path.join(__dirname, "db.json");
           const db = JSON.parse(fs.readFileSync(dbPath, "utf8"));
@@ -241,22 +283,32 @@ module.exports = (req, res, next) => {
 
           if (clinic && doctor && service && latestAppointment) {
             console.log("📧 Found all data, sending email...");
-            await sendConfirmationEmail({
-              patientName: emailData.patientName,
-              patientEmail: emailData.patientEmail,
-              doctorName: doctor.name,
-              clinicName: clinic.name,
-              serviceName: service.name,
-              date: emailData.date,
-              time: emailData.startTime,
-              appointmentId: latestAppointment.id,
-              amount: emailData.amount || clinic.consultationFee,
-              paymentMethod: emailData.paymentMethod,
-              paymentStatus: emailData.paymentStatus,
-              clinicAddress: clinic.location,
-            }, db);
+            await sendConfirmationEmail(
+              {
+                patientName: emailData.patientName,
+                patientEmail: emailData.patientEmail,
+                doctorName: doctor.name,
+                clinicName: clinic.name,
+                serviceName: service.name,
+                date: emailData.date,
+                time: emailData.startTime,
+                appointmentId: latestAppointment.id,
+                amount: emailData.amount || clinic.consultationFee,
+                paymentMethod: emailData.paymentMethod,
+                paymentStatus: emailData.paymentStatus,
+                clinicAddress: clinic.location,
+              },
+              db
+            );
           } else {
-            console.log("❌ Missing data - clinic:", !!clinic, "doctor:", !!doctor, "service:", !!service);
+            console.log(
+              "❌ Missing data - clinic:",
+              !!clinic,
+              "doctor:",
+              !!doctor,
+              "service:",
+              !!service
+            );
           }
         } catch (err) {
           console.error("❌ Failed to send email:", err.message);
